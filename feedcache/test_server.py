@@ -33,6 +33,7 @@ __module_id__ = "$Id$"
 # Import system modules
 #
 import BaseHTTPServer
+import email.utils
 import logging
 import md5
 
@@ -78,6 +79,8 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     ETAG = make_etag(FEED_DATA)
 
+    MODIFIED_TIME = email.utils.formatdate(usegmt=True)
+
     def do_GET(self):
 
         if self.path == '/shutdown':
@@ -88,24 +91,38 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             send_data = True
 
-            incoming_etag = self.headers.get('If-None-Match', None)
-            logger.debug('Incoming etag: "%s"' % incoming_etag)
+            logger.debug('Etag: %s' % self.ETAG)
+            logger.debug('Last-Modified: %s' % self.MODIFIED_TIME)
 
-            # Response code must be sent first
-            if incoming_etag == self.ETAG:
-                logger.debug('Response 304')
+            incoming_etag = self.headers.get('If-None-Match', None)
+            logger.debug('Incoming ETag: "%s"' % incoming_etag)
+
+            incoming_modified = self.headers.get('If-Modified-Since', None)
+            logger.debug('Incoming If-Modified-Since: %s' % incoming_modified)
+
+            if send_data and incoming_etag == self.ETAG:
+                logger.debug('Response 304, etag')
                 self.send_response(304)
                 send_data = False
-            else:
-                logger.debug('Response 200')
-                self.send_response(200)
+
+            if send_data and incoming_modified == self.MODIFIED_TIME:
+                logger.debug('Response 304, modified time')
+                self.send_response(304)
+                send_data = False
 
             # Now optionally send the data, if the client needs it
             if send_data:
+                logger.debug('Response 200')
+                self.send_response(200)
+
                 self.send_header('Content-Type', 'application/atom+xml')
 
                 logger.debug('Outgoing Etag: %s' % self.ETAG)
                 self.send_header('ETag', self.ETAG)
+
+                logger.debug('Outgoing modified time: %s' % self.MODIFIED_TIME)
+                self.send_header('Last-Modified', self.MODIFIED_TIME)
+
                 self.end_headers()
 
                 logger.debug('Sending data')
@@ -131,4 +148,5 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
         while self.keep_serving:
             self.handle_request()
             self.request_count += 1
+        logger.debug('exiting')
         return

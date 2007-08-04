@@ -1,5 +1,12 @@
 2007-08-04  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/test_server.py (TestHTTPHandler.do_GET): Include the
+	If-Modified-Since and Last-Modified header handling.
+
+	* feedcache/cache.py (Cache.__getitem__): Only store the newly
+	fetched feed data in the cache storage if the status code is not
+	304 and there was no error.
+
 	* test_server.py (TestHTTPServer): HTTP server for tests.
 	(TestHTTPHandler): HTTP request handler for tests.
 

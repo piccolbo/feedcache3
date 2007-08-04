@@ -94,7 +94,7 @@ class Cache:
                 logger.debug('cache contents still valid')
                 return cached_content
             else:
-                logger.debug('cache contents passed TTL')
+                logger.debug('cache contents older than TTL')
             
             # The cache is out of date, but we have
             # something.  Try to use the etag and modified_time
@@ -123,13 +123,17 @@ class Cache:
             # stored is up to date.
             self.storage.markUpdated(url)
 
-        # There is new content, so store it unless there was an error.
-        error = parsed_result.get('bozo_exception')
-        if not error:
-            logger.debug('Updating stored data for %s' % url)
-            self.storage.set(url, parsed_result)
+            # Return the data from the cache, since
+            # the parsed data will be empty.
+            parsed_result = cached_content
         else:
-            logger.warning('Not storing data with exception: %s' % str(error))
+            # There is new content, so store it unless there was an error.
+            error = parsed_result.get('bozo_exception')
+            if not error:
+                logger.debug('Updating stored data for %s' % url)
+                self.storage.set(url, parsed_result)
+            else:
+                logger.warning('Not storing data with exception: %s' % str(error))
 
         return parsed_result
 

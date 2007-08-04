@@ -140,7 +140,7 @@ class SingleWriteMemoryStorage(memorystorage.MemoryStorage):
 
     def set(self, url, parsedFeed):
         if url in self.data.keys():
-            assert('Already have cached value for %s' % url)
+            raise AssertionError('Trying to update cache for %s twice' % url)
         memorystorage.MemoryStorage.set(self, url, parsedFeed)
         return
 
@@ -171,14 +171,46 @@ class CacheServerTest(unittest.TestCase):
     def tearDown(self):
         # Stop the server thread
         ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
+        time.sleep(1)
+        self.server.server_close()
         return
 
     def testFetchOnceForEtag(self):
         # First fetch populates the cache
         response1 = self.cache['http://localhost:9999/']
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
-        self.failUnless(response1.entries)
-        self.failUnlessEqual(response1.etag, TestHTTPHandler.ETAG)
+
+        # Remove the modified setting from the cache so we know
+        # the next time we check the etag will be used
+        # to check for updates.  Since we are using an in-memory
+        # cache, modifying response1 updates the cache storage
+        # directly.
+        response1['modified'] = None
+
+        # Wait so the cache data times out
+        time.sleep(1)
+
+        # This should result in a 304 status, and no data from
+        # the server.  That means the cache won't try to
+        # update the storage, so our SingleWriteMemoryStorage
+        # should not raise.
+        response2 = self.cache['http://localhost:9999/']
+
+        # Should have hit the server twice
+        self.failUnlessEqual(self.server.getNumRequests(), 2)
+        return
+
+    def testFetchOnceForModifiedTime(self):
+        # First fetch populates the cache
+        response1 = self.cache['http://localhost:9999/']
+        self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
+
+        # Remove the etag setting from the cache so we know
+        # the next time we check the modified time will be used
+        # to check for updates.  Since we are using an in-memory
+        # cache, modifying response1 updates the cache storage
+        # directly.
+        response1['etag'] = None
 
         # Wait so the cache data times out
         time.sleep(1)
