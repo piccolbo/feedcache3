@@ -68,3 +68,11 @@ class StorageBase:
         stored for that URL.
         """
         raise NotImplementedError()
+
+    def markUpdated(self, url):
+        """Update the modified time for the cached data
+        without changing the data itself.
+        """
+        existing = self.getContent(url)
+        self.set(url, existing)
+        return

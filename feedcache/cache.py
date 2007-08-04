@@ -116,10 +116,9 @@ class Cache:
             # We need to update the modified time in the
             # storage, though, so we know that what we have
             # stored is up to date.
-            self.storage.set(url, cached_content)
+            self.storage.markUpdated(url)
 
-        # There is new content, so store it unless there
-        # was an error.
+        # There is new content, so store it unless there was an error.
         if not parsed_result.get('bozo_exception'):
             self.storage.set(url, parsed_result)
 
