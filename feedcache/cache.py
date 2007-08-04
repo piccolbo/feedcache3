@@ -49,10 +49,11 @@ import time
 logger = logging.getLogger('feedcache.cache')
 
 class Cache:
-    """A class to wrap Mark Pilgrim's FeedParser module so that parameters
-    can be used to cache the feed results locally instead of fetching
-    the feed every time it is requested. Uses both etag and modified
-    times for caching.
+    """A class to wrap Mark Pilgrim's Universal Feed Parser module
+    (http://www.feedparser.org) so that parameters can be used to
+    cache the feed results locally instead of fetching the feed every
+    time it is requested. Uses both etag and modified times for
+    caching.
     """
 
     def __init__(self, storage, timeToLiveSeconds=300, userAgent='feedcache'):

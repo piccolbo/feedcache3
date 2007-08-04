@@ -37,7 +37,9 @@ __module_id__ = "$Id$"
 #
 # Import local modules
 #
-
+from cache import Cache
+from memorystorage import MemoryStorage
+from shelvestorage import ShelveStorage
 
 #
 # Module

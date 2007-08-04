@@ -76,4 +76,6 @@ feed in local files is included.
 
     platforms = ('Any',),
     keywords = ('syndication', 'atom', 'RSS'),
+
+    requires=['feedparser'],
     )
