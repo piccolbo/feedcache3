@@ -1,5 +1,15 @@
 2007-08-04  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/test_server.py (TestHTTPHandler.do_GET): Only check
+	the ETag and If-Modified-Since header values if the server is
+	configured to apply them.
+
+	* feedcache/test_cache.py: Make all of the tests use the HTTP
+	server, and add a few additional checks.
+
+	* feedcache/cache.py (Cache.__getitem__): Only check the age of
+	the item in the cache if we have a time-to-live value.
+
 	* setup.py.in: Add requires=['feedparser'].
 
 	* feedcache/cache.py (Cache): Add URL to feedparser.org in docstring.

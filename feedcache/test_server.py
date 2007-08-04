@@ -48,11 +48,16 @@ import md5
 logger = logging.getLogger('feedcache.test_server')
 
 def make_etag(data):
+    """Given a string containing data to be returned to the client,
+    compute an ETag value for the data.
+    """
     _md5 = md5.new()
     _md5.update(data)
     return _md5.hexdigest()
 
+
 class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    "HTTP request handler which serves the same feed data every time."
 
     FEED_DATA = """<?xml version="1.0" encoding="utf-8"?>
 
@@ -77,11 +82,14 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   </entry>
 </feed>"""
 
+    # The data does not change, so save the ETag as a class attribute
     ETAG = make_etag(FEED_DATA)
 
+    # The data does not change, so save the modified time as a class attribute
     MODIFIED_TIME = email.utils.formatdate(usegmt=True)
 
     def do_GET(self):
+        "Handle GET requests."
 
         if self.path == '/shutdown':
             logger.debug('Stopping server')
@@ -89,8 +97,6 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             
         else:
-            send_data = True
-
             logger.debug('Etag: %s' % self.ETAG)
             logger.debug('Last-Modified: %s' % self.MODIFIED_TIME)
 
@@ -100,15 +106,19 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             incoming_modified = self.headers.get('If-Modified-Since', None)
             logger.debug('Incoming If-Modified-Since: %s' % incoming_modified)
 
-            if send_data and incoming_etag == self.ETAG:
-                logger.debug('Response 304, etag')
-                self.send_response(304)
-                send_data = False
+            send_data = True
 
-            if send_data and incoming_modified == self.MODIFIED_TIME:
-                logger.debug('Response 304, modified time')
-                self.send_response(304)
-                send_data = False
+            # Does the client have the same version of the data we have?
+            if self.server.apply_modified_headers:
+                if send_data and incoming_etag == self.ETAG:
+                    logger.debug('Response 304, etag')
+                    self.send_response(304)
+                    send_data = False
+
+                if send_data and incoming_modified == self.MODIFIED_TIME:
+                    logger.debug('Response 304, modified time')
+                    self.send_response(304)
+                    send_data = False
 
             # Now optionally send the data, if the client needs it
             if send_data:
@@ -130,21 +140,28 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
 class TestHTTPServer(BaseHTTPServer.HTTPServer):
+    """HTTP Server which counts the number of requests made
+    and can stop based on client instructions.
+    """
 
-    def __init__(self):
+    def __init__(self, applyModifiedHeaders=True):
+        self.apply_modified_headers = applyModifiedHeaders
         self.keep_serving = True
         self.request_count = 0
         BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), TestHTTPHandler)
         return
 
     def getNumRequests(self):
+        "Return the number of requests which have been made on the server."
         return self.request_count
 
     def stop(self):
+        "Stop serving requests, after the next request."
         self.keep_serving = False
         return
 
     def serve_forever(self):
+        "Main loop for server"
         while self.keep_serving:
             self.handle_request()
             self.request_count += 1

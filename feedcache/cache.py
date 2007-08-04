@@ -84,18 +84,21 @@ class Cache:
         etag = None
 
         # Does the storage contain a version of the data
-        # which is not too old and does not have an error?
+        # which is older than the time-to-live?
         cached_time = self.storage.getModifiedTime(url)
         logger.debug('cache modified time: %s' % str(cached_time))
         if cached_time is not None:
             cached_content = self.storage.getContent(url)
-            now = time.time()
-            age = now - cached_time
-            if age <= self.time_to_live:
-                logger.debug('cache contents still valid')
-                return cached_content
+            if self.time_to_live:
+                now = time.time()
+                age = now - cached_time
+                if age <= self.time_to_live:
+                    logger.debug('cache contents still valid')
+                    return cached_content
+                else:
+                    logger.debug('cache contents older than TTL')
             else:
-                logger.debug('cache contents older than TTL')
+                logger.debug('no TTL value')
             
             # The cache is out of date, but we have
             # something.  Try to use the etag and modified_time

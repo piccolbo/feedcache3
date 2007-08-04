@@ -55,64 +55,67 @@ from test_server import TestHTTPServer, TestHTTPHandler
 # Module
 #
 
-class CacheTest(unittest.TestCase):
+class CacheTestBase(unittest.TestCase):
+    "Base class for Cache tests"
 
-    FEED_DATA = """<?xml version="1.0" encoding="utf-8"?>
+    TEST_URL = 'http://localhost:9999/'
 
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
-  <title>CacheTest test data</title>
-  <link href="http://localhost/feedcache/" rel="alternate"></link>
-  <link href="http://localhost/feedcache/atom/" rel="self"></link>
-  <id>http://localhost/feedcache/</id>
-  <updated>2006-10-14T11:00:36Z</updated>
-  <entry>
-    <title>single test entry</title>
-    <link href="http://www.example.com/" rel="alternate"></link>
-    <updated>2006-10-14T11:00:36Z</updated>
-    <author>
-      <name>author goes here</name>
-      <email>authoremail@example.com</email>
-    </author>
-    <id>http://www.example.com/</id>
-    <summary type="html">description goes here</summary>
-    <link length="100" href="http://www.example.com/enclosure" type="text/html" rel="enclosure">
-    </link>
-  </entry>
-</feed>"""
+    CACHE_TTL = 0
 
     def setUp(self):
-        # Establish test data
-        handle, self.tmp_file = tempfile.mkstemp('.xml')
-        os.close(handle)
-        f = open(self.tmp_file, 'wt')
-        try:
-            f.write(self.FEED_DATA)
-        finally:
-            f.close()
+        self.server = self.getServer()
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.setDaemon(True) # so the tests don't hang if cleanup fails
+        self.server_thread.start()
 
-        self.storage = memorystorage.MemoryStorage()
-        self.cache = cache.Cache(self.storage, userAgent='feedcache.test')
+        self.storage = self.getStorage()
+        self.cache = cache.Cache(self.storage,
+                                 timeToLiveSeconds=self.CACHE_TTL,
+                                 userAgent='feedcache.test',
+                                 )
         return
+
+    def getServer(self):
+        "Return a web server for the test."
+        return TestHTTPServer()
+
+    def getStorage(self):
+        "Return a cache storage for the test."
+        return memorystorage.MemoryStorage()
 
     def tearDown(self):
-        try:
-            os.unlink(self.tmp_file)
-        except AttributeError:
-            pass
+        # Stop the server thread
+        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
+        time.sleep(1)
+        self.server.server_close()
         return
 
+
+class CacheTest(CacheTestBase):
+
+    CACHE_TTL = 30
+
+    def getServer(self):
+        "These tests do not want to use the ETag or If-Modified-Since headers"
+        return TestHTTPServer(applyModifiedHeaders=False)
+
     def testRetrieveNotInCache(self):
-        feed_data = self.cache[self.tmp_file]
+        # Retrieve data not already in the cache.
+        feed_data = self.cache[self.TEST_URL]
         self.failUnless(feed_data)
         self.failUnlessEqual(feed_data.feed.title, 'CacheTest test data')
         return
 
     def testRetrieveIsInCache(self):
+        # Retrieve data which is alread in the cache,
+        # and verify that the second copy is identitical
+        # to the first.
+
         # First fetch
-        feed_data = self.cache[self.tmp_file]
+        feed_data = self.cache[self.TEST_URL]
 
         # Second fetch
-        feed_data2 = self.cache[self.tmp_file]
+        feed_data2 = self.cache[self.TEST_URL]
 
         # Since it is the in-memory storage, we should have the
         # exact same object.
@@ -120,22 +123,29 @@ class CacheTest(unittest.TestCase):
         return
 
     def testExpireDataInCache(self):
+        # Retrieve data which is in the cache but which
+        # has expired and verify that the second copy
+        # is different from the first.
+
         # First fetch
-        feed_data = self.cache[self.tmp_file]
+        feed_data = self.cache[self.TEST_URL]
 
         # Change the timeout and sleep to move the clock
         self.cache.time_to_live = 0
         time.sleep(1)
 
         # Second fetch
-        feed_data2 = self.cache[self.tmp_file]
+        feed_data2 = self.cache[self.TEST_URL]
 
         # Since we reparsed, the cache response should be different.
         self.failIf(feed_data is feed_data2)
         return
 
+
+
 class SingleWriteMemoryStorage(memorystorage.MemoryStorage):
-    """Only allow the cache value for a URL to be updated one time.
+    """Cache storage which only allows the cache value 
+    for a URL to be updated one time.
     """
 
     def set(self, url, parsedFeed):
@@ -153,29 +163,16 @@ class SingleWriteMemoryStorage(memorystorage.MemoryStorage):
         return
     
 
-class CacheServerTest(unittest.TestCase):
+class CacheUpdateTest(CacheTestBase):
 
-    def setUp(self):
-        self.server = TestHTTPServer()
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.setDaemon(True) # so the tests don't hang if cleanup fails
-        self.server_thread.start()
-
-        self.storage = SingleWriteMemoryStorage()
-        self.cache = cache.Cache(self.storage,
-                                 timeToLiveSeconds=0,
-                                 userAgent='feedcache.test',
-                                 )
-        return
-
-    def tearDown(self):
-        # Stop the server thread
-        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
-        time.sleep(1)
-        self.server.server_close()
-        return
+    def getStorage(self):
+        return SingleWriteMemoryStorage()
 
     def testFetchOnceForEtag(self):
+        # Fetch data which has a valid ETag value, and verify
+        # that while we hit the server twice the response
+        # codes cause us to use the same data.
+
         # First fetch populates the cache
         response1 = self.cache['http://localhost:9999/']
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
@@ -193,14 +190,20 @@ class CacheServerTest(unittest.TestCase):
         # This should result in a 304 status, and no data from
         # the server.  That means the cache won't try to
         # update the storage, so our SingleWriteMemoryStorage
-        # should not raise.
+        # should not raise and we should have the same
+        # response object.
         response2 = self.cache['http://localhost:9999/']
+        self.failUnless(response1 is response2)
 
         # Should have hit the server twice
         self.failUnlessEqual(self.server.getNumRequests(), 2)
         return
 
     def testFetchOnceForModifiedTime(self):
+        # Fetch data which has a valid Last-Modified value, and verify
+        # that while we hit the server twice the response
+        # codes cause us to use the same data.
+
         # First fetch populates the cache
         response1 = self.cache['http://localhost:9999/']
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
@@ -218,8 +221,10 @@ class CacheServerTest(unittest.TestCase):
         # This should result in a 304 status, and no data from
         # the server.  That means the cache won't try to
         # update the storage, so our SingleWriteMemoryStorage
-        # should not raise.
+        # should not raise and we should have the same
+        # response object.
         response2 = self.cache['http://localhost:9999/']
+        self.failUnless(response1 is response2)
 
         # Should have hit the server twice
         self.failUnlessEqual(self.server.getNumRequests(), 2)
