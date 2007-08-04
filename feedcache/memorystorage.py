@@ -50,7 +50,7 @@ class MemoryStorage(storagebase.StorageBase):
         self.data = {}
         return
 
-    def getAge(self, url):
+    def getModifiedTime(self, url):
         return self.data.get(url, (None, None))[0]
 
     def getContent(self, url):

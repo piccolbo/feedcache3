@@ -1,0 +1,15 @@
+2007-08-04  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* test_server.py (TestHTTPServer): HTTP server for tests.
+	(TestHTTPHandler): HTTP request handler for tests.
+
+	* test_cache.py: Set up the logging before anything else.
+	(CacheServerTest): New tests that work with an HTTP server to
+	check etag handling in the cache.
+
+	* memorystorage.py (MemoryStorage.getModifiedTime): Change getAge
+	to getModifiedTime.
+
+	* cache.py (Cache.__getitem__): Change getAge to getModifiedTime.
+	(Cache): Add debugging.
+
