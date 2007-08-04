@@ -1,5 +1,8 @@
 2007-08-04  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/test_shelvestorage.py (ShelveStorageTest.testRetrieveExistingData):
+	Ensure that the shelvestorage is saving modified times.
+
 	* feedcache/test_server.py (TestHTTPHandler.do_GET): Include the
 	If-Modified-Since and Last-Modified header handling.
 

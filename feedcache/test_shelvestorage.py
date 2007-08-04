@@ -98,9 +98,11 @@ class ShelveStorageTest(unittest.TestCase):
         storage.open()
         try:
             value = storage.getContent(url)
+            modified = storage.getModifiedTime(url)
         finally:
             storage.close()
 
+        self.failUnless(modified)
         self.failUnlessEqual(value, data)
         return
 
