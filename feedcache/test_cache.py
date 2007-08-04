@@ -85,6 +85,9 @@ class CacheTest(unittest.TestCase):
             f.write(self.FEED_DATA)
         finally:
             f.close()
+
+        self.storage = memorystorage.MemoryStorage()
+        self.cache = cache.Cache(self.storage, userAgent='feedcache.test')
         return
 
     def tearDown(self):
@@ -95,23 +98,17 @@ class CacheTest(unittest.TestCase):
         return
 
     def testRetrieveNotInCache(self):
-        s = memorystorage.MemoryStorage()
-        c = cache.Cache(s, userAgent='feedcache.test')
-        feed_data = c[self.tmp_file]
+        feed_data = self.cache[self.tmp_file]
         self.failUnless(feed_data)
         self.failUnlessEqual(feed_data.feed.title, 'CacheTest test data')
         return
 
     def testRetrieveIsInCache(self):
-        # Set up the cache
-        s = memorystorage.MemoryStorage()
-        c = cache.Cache(s, userAgent='feedcache.test')
-
         # First fetch
-        feed_data = c[self.tmp_file]
+        feed_data = self.cache[self.tmp_file]
 
         # Second fetch
-        feed_data2 = c[self.tmp_file]
+        feed_data2 = self.cache[self.tmp_file]
 
         # Since it is the in-memory storage, we should have the
         # exact same object.

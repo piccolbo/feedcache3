@@ -108,11 +108,11 @@ class Cache:
                                          modified=modified,
                                          etag=etag,
                                          )
-        logger.debug('entries=%d' % len(parsed_result.get('entries', [])))
+
         status = parsed_result.get('status', None)
         logger.debug('status=%s' % status)
         if status == 304:
-            # No new data, based on etag or modified fields.
+            # No new data, based on the etag or modified values.
             # We need to update the modified time in the
             # storage, though, so we know that what we have
             # stored is up to date.

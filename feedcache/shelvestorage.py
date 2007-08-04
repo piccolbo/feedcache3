@@ -23,7 +23,7 @@
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-"""Define the API which must be supported by a storage handler for the cache.
+"""Cache storage using shelve for the backend.
 
 """
 
@@ -32,58 +32,53 @@ __module_id__ = "$Id$"
 #
 # Import system modules
 #
-
+import os
+import shelve
+import time
 
 #
 # Import local modules
 #
-
+import storagebase
 
 #
 # Module
 #
 
-class StorageBase:
-    """Base class to define the API which must be supported by a
-    storage handler for the cache.
-    """
+class ShelveStorage(storagebase.StorageBase):
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.data = None
+        return
 
     def open(self):
-        """Prepare the storage to be used.
-        """
+        if os.path.exists(self.filename):
+            flags = 'w'
+        else:
+            flags = 'c'
+        self.data = shelve.open(self.filename, flags)
         return
 
     def close(self):
-        """Commit changes to the storage and disconnect
-        any open resources.
-        """
+        if self.data is not None:
+            self.data.close()
+            self.data = None
+        return
+
+    def __del__(self):
+        self.close()
         return
 
     def getModifiedTime(self, url):
-        """Return the time.time() value for when the cache was
-        updated with data for the URL.  If there is no data
-        for the URL, return None.
-        """
-        raise NotImplementedError()
+        record = self.data[url]
+        return record[0]
 
     def getContent(self, url):
-        """Return the stored version of the contents for
-        the feed at url.  If nothing is stored for that
-        url, return None.
-        """
-        raise NotImplementedError()
+        record = self.data[url]
+        return record[1]
 
     def set(self, url, parsedFeed):
-        """Store the value of the parsed feed for the
-        specified URL, replacing any content previously
-        stored for that URL.
-        """
-        raise NotImplementedError()
-
-    def markUpdated(self, url):
-        """Update the modified time for the cached data
-        without changing the data itself.
-        """
-        existing = self.getContent(url)
-        self.set(url, existing)
+        record = (time.time(), parsedFeed)
+        self.data[url] = record
         return
