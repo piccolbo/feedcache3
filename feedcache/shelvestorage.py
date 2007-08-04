@@ -27,6 +27,8 @@
 
 """
 
+from __future__ import with_statement
+
 __module_id__ = "$Id$"
 
 #
@@ -34,6 +36,7 @@ __module_id__ = "$Id$"
 #
 import os
 import shelve
+import threading
 import time
 
 #
@@ -50,20 +53,25 @@ class ShelveStorage(storagebase.StorageBase):
     def __init__(self, filename):
         self.filename = filename
         self.data = None
+        self.lock = threading.Lock()
         return
 
     def open(self):
-        if os.path.exists(self.filename):
-            flags = 'w'
-        else:
-            flags = 'c'
-        self.data = shelve.open(self.filename, flags)
+        with self.lock:
+            if self.data is not None:
+                raise RuntimeError('ShelveStorage(%s) is already open' % self.filename)
+            if os.path.exists(self.filename):
+                flags = 'w'
+            else:
+                flags = 'c'
+            self.data = shelve.open(self.filename, flags)
         return
 
     def close(self):
-        if self.data is not None:
-            self.data.close()
-            self.data = None
+        with self.lock:
+            if self.data is not None:
+                self.data.close()
+                self.data = None
         return
 
     def __del__(self):
@@ -71,14 +79,19 @@ class ShelveStorage(storagebase.StorageBase):
         return
 
     def getModifiedTime(self, url):
-        record = self.data[url]
-        return record[0]
+        with self.lock:
+            record = self.data[url]
+            response = record[0]
+        return response
 
     def getContent(self, url):
-        record = self.data[url]
-        return record[1]
+        with self.lock:
+            record = self.data[url]
+            response = record[1]
+        return response
 
     def set(self, url, parsedFeed):
-        record = (time.time(), parsedFeed)
-        self.data[url] = record
+        with self.lock:
+            record = (time.time(), parsedFeed)
+            self.data[url] = record
         return

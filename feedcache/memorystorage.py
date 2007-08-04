@@ -48,6 +48,7 @@ class MemoryStorage(storagebase.StorageBase):
 
     def __init__(self):
         self.data = {}
+        return
 
     def getAge(self, url):
         return self.data.get(url, (None, None))[0]
