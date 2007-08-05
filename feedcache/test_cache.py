@@ -160,8 +160,8 @@ class SingleWriteMemoryStorage(memorystorage.MemoryStorage):
         """Update the modified time for the cached data
         without changing the data itself.
         """
-        existing = self.getContent(url)
-        self.data[url] = (time.time(), existing)
+        old_time, existing_data = self.get(url)
+        self.data[url] = (time.time(), existing_data)
         return
     
 

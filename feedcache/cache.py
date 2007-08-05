@@ -83,12 +83,12 @@ class Cache:
         modified = None
         etag = None
 
+        cached_time, cached_content = self.storage.get(url)
+
         # Does the storage contain a version of the data
         # which is older than the time-to-live?
-        cached_time = self.storage.getModifiedTime(url)
         logger.debug('cache modified time: %s' % str(cached_time))
         if cached_time is not None:
-            cached_content = self.storage.getContent(url)
             if self.time_to_live:
                 now = time.time()
                 age = now - cached_time

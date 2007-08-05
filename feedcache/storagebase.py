@@ -59,17 +59,10 @@ class StorageBase:
         """
         return
 
-    def getModifiedTime(self, url):
-        """Return the time.time() value for when the cache was
-        updated with data for the URL.  If there is no data
-        for the URL, return None.
-        """
-        raise NotImplementedError()
-
-    def getContent(self, url):
-        """Return the stored version of the contents for
-        the feed at url.  If nothing is stored for that
-        url, return None.
+    def get(self, url):
+        """Return a 2 part tuple containing the time.time() value for when the
+        cache was updated with data for the URL, and the data.
+        If there is no data for the URL, return (None, None).
         """
         raise NotImplementedError()
 
@@ -84,6 +77,6 @@ class StorageBase:
         """Update the modified time for the cached data
         without changing the data itself.
         """
-        existing = self.getContent(url)
-        self.set(url, existing)
+        old_time, existing_data = self.get(url)
+        self.set(url, existing_data)
         return

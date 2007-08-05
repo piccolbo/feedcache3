@@ -98,8 +98,7 @@ class ShelveStorageTest(unittest.TestCase):
         storage = shelvestorage.ShelveStorage(self.shelve_file)
         storage.open()
         try:
-            value = storage.getContent(url)
-            modified = storage.getModifiedTime(url)
+            modified, value = storage.get(url)
         finally:
             storage.close()
 

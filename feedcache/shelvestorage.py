@@ -82,25 +82,14 @@ class ShelveStorage(storagebase.StorageBase):
         if self.data is None:
             raise RuntimeError('ShelveStorage used without being opened.')
 
-    def getModifiedTime(self, url):
+    def get(self, url):
         self._mustBeOpened()
         try:
             with self.lock:
                 record = self.data[url]
-                response = record[0]
         except KeyError:
-            response = None
-        return response
-
-    def getContent(self, url):
-        self._mustBeOpened()
-        try:
-            with self.lock:
-                record = self.data[url]
-                response = record[1]
-        except KeyError:
-            response = None
-        return response
+            record = (None, None)
+        return record
 
     def set(self, url, parsedFeed):
         self._mustBeOpened()

@@ -50,11 +50,8 @@ class MemoryStorage(storagebase.StorageBase):
         self.data = {}
         return
 
-    def getModifiedTime(self, url):
-        return self.data.get(url, (None, None))[0]
-
-    def getContent(self, url):
-        return self.data.get(url, (None, None))[1]
+    def get(self, url):
+        return self.data.get(url, (None, None))
 
     def set(self, url, parsedFeed):
         self.data[url] = (time.time(), parsedFeed)

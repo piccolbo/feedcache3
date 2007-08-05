@@ -1,5 +1,9 @@
 2007-08-05  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/storagebase.py (StorageBase.get): Merge getContent and
+	getModifiedTime into a single method, get, to avoid race
+	conditions between checking the time and using the data.
+
 	* feedcache/test_shelvestorage.py (ShelveStorageCacheTest): Add a
 	few integration tests using ShelveStorage with the Cache.
 
