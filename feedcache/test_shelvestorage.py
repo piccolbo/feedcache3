@@ -41,6 +41,7 @@ import unittest
 # Import local modules
 #
 import shelvestorage
+import test_cache
 
 #
 # Module
@@ -104,6 +105,53 @@ class ShelveStorageTest(unittest.TestCase):
 
         self.failUnless(modified)
         self.failUnlessEqual(value, data)
+        return
+
+class ShelveStorageCacheTest(test_cache.CacheTestBase):
+
+    def setUp(self):
+        # Establish test data
+        handle, self.shelve_file = tempfile.mkstemp('.shelve')
+        os.close(handle)
+        # Remove the file so it is recreated by the ShelveStorage
+        try:
+            os.unlink(self.shelve_file)
+        except AttributeError:
+            pass
+        test_cache.CacheTestBase.setUp(self)
+        return
+
+    def tearDown(self):
+        test_cache.CacheTestBase.tearDown(self)
+        try:
+            os.unlink(self.shelve_file)
+        except AttributeError:
+            pass
+        return
+
+    def getStorage(self):
+        return shelvestorage.ShelveStorage(self.shelve_file)
+
+    def testRetrieveNotInCache(self):
+        # Retrieve data not already in the cache.
+        feed_data = self.cache[self.TEST_URL]
+        self.failUnless(feed_data)
+        self.failUnlessEqual(feed_data.feed.title, 'CacheTest test data')
+        return
+
+    def testRetrieveIsInCache(self):
+        # Retrieve data which is alread in the cache,
+        # and verify that the second copy is identitical
+        # to the first.
+
+        # First fetch
+        feed_data = self.cache[self.TEST_URL]
+
+        # Second fetch
+        feed_data2 = self.cache[self.TEST_URL]
+
+        # The feed contents should not have changed
+        self.failUnlessEqual(feed_data, feed_data2)
         return
 
 if __name__ == '__main__':

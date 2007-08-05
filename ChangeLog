@@ -1,3 +1,15 @@
+2007-08-05  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/test_shelvestorage.py (ShelveStorageCacheTest): Add a
+	few integration tests using ShelveStorage with the Cache.
+
+	* feedcache/shelvestorage.py: Check that the storage is open
+	before allowing the caller to use it.  Handle KeyError exceptions
+	by returning None.
+
+	* feedcache/example.py (main): Simple example program that uses
+	the feed cache to retrieve feed data and print out the titles.
+
 2007-08-04  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/test_server.py (TestHTTPHandler.do_GET): Only check

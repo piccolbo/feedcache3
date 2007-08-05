@@ -69,6 +69,7 @@ class CacheTestBase(unittest.TestCase):
         self.server_thread.start()
 
         self.storage = self.getStorage()
+        self.storage.open()
         self.cache = cache.Cache(self.storage,
                                  timeToLiveSeconds=self.CACHE_TTL,
                                  userAgent='feedcache.test',
@@ -84,6 +85,7 @@ class CacheTestBase(unittest.TestCase):
         return memorystorage.MemoryStorage()
 
     def tearDown(self):
+        self.storage.close()
         # Stop the server thread
         ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
         time.sleep(1)
