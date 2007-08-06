@@ -33,6 +33,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(name)s %(message)s',
                     )
+logger = logging.getLogger('feedcache.test_cache')
 
 #
 # Import system modules
@@ -43,12 +44,12 @@ import threading
 import time
 import unittest
 import urllib
+import UserDict
 
 #
 # Import local modules
 #
 import cache
-import memorystorage
 from test_server import TestHTTPServer, TestHTTPHandler
 
 #
@@ -69,7 +70,6 @@ class CacheTestBase(unittest.TestCase):
         self.server_thread.start()
 
         self.storage = self.getStorage()
-        self.storage.open()
         self.cache = cache.Cache(self.storage,
                                  timeToLiveSeconds=self.CACHE_TTL,
                                  userAgent='feedcache.test',
@@ -82,10 +82,9 @@ class CacheTestBase(unittest.TestCase):
 
     def getStorage(self):
         "Return a cache storage for the test."
-        return memorystorage.MemoryStorage()
+        return {}
 
     def tearDown(self):
-        self.storage.close()
         # Stop the server thread
         ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
         time.sleep(1)
@@ -145,23 +144,20 @@ class CacheTest(CacheTestBase):
 
 
 
-class SingleWriteMemoryStorage(memorystorage.MemoryStorage):
+class SingleWriteMemoryStorage(UserDict.UserDict):
     """Cache storage which only allows the cache value 
     for a URL to be updated one time.
     """
 
-    def set(self, url, parsedFeed):
-        if url in self.data.keys():
-            raise AssertionError('Trying to update cache for %s twice' % url)
-        memorystorage.MemoryStorage.set(self, url, parsedFeed)
-        return
-
-    def markUpdated(self, url):
-        """Update the modified time for the cached data
-        without changing the data itself.
-        """
-        old_time, existing_data = self.get(url)
-        self.data[url] = (time.time(), existing_data)
+    def __setitem__(self, url, data):
+        if url in self.keys():
+            modified, existing = self[url]
+            # Allow the modified time to change, 
+            # but not the feed content.
+            if data[1] != existing:
+                raise AssertionError('Trying to update cache for %s to %s' \
+                                         % (url, data))
+        UserDict.UserDict.__setitem__(self, url, data)
         return
     
 

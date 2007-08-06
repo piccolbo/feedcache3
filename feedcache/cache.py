@@ -82,15 +82,15 @@ class Cache:
 
         modified = None
         etag = None
+        now = time.time()
 
-        cached_time, cached_content = self.storage.get(url)
+        cached_time, cached_content = self.storage.get(url, (None, None))
 
         # Does the storage contain a version of the data
         # which is older than the time-to-live?
         logger.debug('cache modified time: %s' % str(cached_time))
         if cached_time is not None:
             if self.time_to_live:
-                now = time.time()
                 age = now - cached_time
                 if age <= self.time_to_live:
                     logger.debug('cache contents still valid')
@@ -125,7 +125,7 @@ class Cache:
             # We need to update the modified time in the
             # storage, though, so we know that what we have
             # stored is up to date.
-            self.storage.markUpdated(url)
+            self.storage[url] = (now, cached_content)
 
             # Return the data from the cache, since
             # the parsed data will be empty.
@@ -135,7 +135,7 @@ class Cache:
             error = parsed_result.get('bozo_exception')
             if not error:
                 logger.debug('Updating stored data for %s' % url)
-                self.storage.set(url, parsed_result)
+                self.storage[url] = (now, parsed_result)
             else:
                 logger.warning('Not storing data with exception: %s' % str(error))
 

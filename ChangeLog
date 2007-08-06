@@ -1,3 +1,11 @@
+2007-08-06  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/test_cache.py: Use dictionary instead of custom
+	MemoryStorage class.
+
+	* feedcache/cache.py (Cache.__getitem__): Use __getitem__ and
+	__setitem__ API with storage.
+
 2007-08-05  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/storagebase.py (StorageBase.get): Merge getContent and
