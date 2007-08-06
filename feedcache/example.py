@@ -29,11 +29,6 @@
 
 __module_id__ = "$Id$"
 
-import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-8s %(name)s %(message)s',
-                    )
-
 #
 # Import system modules
 #

@@ -76,7 +76,7 @@ class Cache:
         self.user_agent = userAgent
         return
 
-    def __getitem__(self, url):
+    def fetch(self, url):
         "Return the feed at url."
         logger.debug('url="%s"' % url)
 

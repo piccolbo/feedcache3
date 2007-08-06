@@ -1,5 +1,11 @@
 2007-08-06  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/cache.py (Cache.fetch): Change __getitem__ to fetch
+	since Cache does not support the rest of the dictionary API.
+
+	* feedcache/example.py: Remove logging configuration so log
+	messages are discarded quietly.
+
 	* feedcache/test_cache.py: Use dictionary instead of custom
 	MemoryStorage class.
 

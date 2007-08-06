@@ -39,7 +39,6 @@ logger = logging.getLogger('feedcache.test_cache')
 # Import system modules
 #
 import os
-import tempfile
 import threading
 import time
 import unittest
@@ -55,6 +54,7 @@ from test_server import TestHTTPServer, TestHTTPHandler
 #
 # Module
 #
+
 
 class CacheTestBase(unittest.TestCase):
     "Base class for Cache tests"
@@ -89,6 +89,7 @@ class CacheTestBase(unittest.TestCase):
         ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
         time.sleep(1)
         self.server.server_close()
+        self.server_thread.join()
         return
 
 
@@ -102,7 +103,7 @@ class CacheTest(CacheTestBase):
 
     def testRetrieveNotInCache(self):
         # Retrieve data not already in the cache.
-        feed_data = self.cache[self.TEST_URL]
+        feed_data = self.cache.fetch(self.TEST_URL)
         self.failUnless(feed_data)
         self.failUnlessEqual(feed_data.feed.title, 'CacheTest test data')
         return
@@ -113,10 +114,10 @@ class CacheTest(CacheTestBase):
         # to the first.
 
         # First fetch
-        feed_data = self.cache[self.TEST_URL]
+        feed_data = self.cache.fetch(self.TEST_URL)
 
         # Second fetch
-        feed_data2 = self.cache[self.TEST_URL]
+        feed_data2 = self.cache.fetch(self.TEST_URL)
 
         # Since it is the in-memory storage, we should have the
         # exact same object.
@@ -129,14 +130,14 @@ class CacheTest(CacheTestBase):
         # is different from the first.
 
         # First fetch
-        feed_data = self.cache[self.TEST_URL]
+        feed_data = self.cache.fetch(self.TEST_URL)
 
         # Change the timeout and sleep to move the clock
         self.cache.time_to_live = 0
         time.sleep(1)
 
         # Second fetch
-        feed_data2 = self.cache[self.TEST_URL]
+        feed_data2 = self.cache.fetch(self.TEST_URL)
 
         # Since we reparsed, the cache response should be different.
         self.failIf(feed_data is feed_data2)
@@ -172,7 +173,7 @@ class CacheUpdateTest(CacheTestBase):
         # codes cause us to use the same data.
 
         # First fetch populates the cache
-        response1 = self.cache['http://localhost:9999/']
+        response1 = self.cache.fetch('http://localhost:9999/')
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the modified setting from the cache so we know
@@ -190,7 +191,7 @@ class CacheUpdateTest(CacheTestBase):
         # update the storage, so our SingleWriteMemoryStorage
         # should not raise and we should have the same
         # response object.
-        response2 = self.cache['http://localhost:9999/']
+        response2 = self.cache.fetch('http://localhost:9999/')
         self.failUnless(response1 is response2)
 
         # Should have hit the server twice
@@ -203,7 +204,7 @@ class CacheUpdateTest(CacheTestBase):
         # codes cause us to use the same data.
 
         # First fetch populates the cache
-        response1 = self.cache['http://localhost:9999/']
+        response1 = self.cache.fetch('http://localhost:9999/')
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the etag setting from the cache so we know
@@ -221,7 +222,7 @@ class CacheUpdateTest(CacheTestBase):
         # update the storage, so our SingleWriteMemoryStorage
         # should not raise and we should have the same
         # response object.
-        response2 = self.cache['http://localhost:9999/']
+        response2 = self.cache.fetch('http://localhost:9999/')
         self.failUnless(response1 is response2)
 
         # Should have hit the server twice
