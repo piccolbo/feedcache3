@@ -1,3 +1,8 @@
+2007-08-07  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/test_server.py (TestHTTPHandler.do_GET): Clean up the
+	etag and modified date logic.
+
 2007-08-06  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/cache.py (Cache.fetch): Change __getitem__ to fetch

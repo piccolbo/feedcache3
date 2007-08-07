@@ -114,12 +114,12 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             # Does the client have the same version of the data we have?
             if self.server.apply_modified_headers:
-                if send_data and incoming_etag == self.ETAG:
+                if incoming_etag == self.ETAG:
                     logger.debug('Response 304, etag')
                     self.send_response(304)
                     send_data = False
 
-                if send_data and incoming_modified == self.MODIFIED_TIME:
+                elif incoming_modified == self.MODIFIED_TIME:
                     logger.debug('Response 304, modified time')
                     self.send_response(304)
                     send_data = False
