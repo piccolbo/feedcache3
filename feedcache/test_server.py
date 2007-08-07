@@ -36,6 +36,10 @@ import BaseHTTPServer
 import email.utils
 import logging
 import md5
+import threading
+import time
+import unittest
+import urllib
 
 #
 # Import local modules
@@ -82,16 +86,16 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   </entry>
 </feed>"""
 
-    # The data does not change, so save the ETag as a class attribute
+    # The data does not change, so save the ETag and modified times
+    # as class attributes.
     ETAG = make_etag(FEED_DATA)
-
-    # The data does not change, so save the modified time as a class attribute
     MODIFIED_TIME = email.utils.formatdate(usegmt=True)
 
     def do_GET(self):
         "Handle GET requests."
 
         if self.path == '/shutdown':
+            # Shortcut to handle stopping the server
             logger.debug('Stopping server')
             self.server.stop()
             self.send_response(200)
@@ -166,4 +170,31 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
             self.handle_request()
             self.request_count += 1
         logger.debug('exiting')
+        return
+
+
+class HTTPTestBase(unittest.TestCase):
+    "Base class for tests that use a TestHTTPServer"
+
+    TEST_URL = 'http://localhost:9999/'
+
+    CACHE_TTL = 0
+
+    def setUp(self):
+        self.server = self.getServer()
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.setDaemon(True) # so the tests don't hang if cleanup fails
+        self.server_thread.start()
+        return
+
+    def getServer(self):
+        "Return a web server for the test."
+        return TestHTTPServer()
+
+    def tearDown(self):
+        # Stop the server thread
+        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
+        time.sleep(1)
+        self.server.server_close()
+        self.server_thread.join()
         return

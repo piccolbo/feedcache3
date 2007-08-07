@@ -39,35 +39,24 @@ logger = logging.getLogger('feedcache.test_cache')
 # Import system modules
 #
 import os
-import threading
 import time
 import unittest
-import urllib
 import UserDict
 
 #
 # Import local modules
 #
 import cache
-from test_server import TestHTTPServer, TestHTTPHandler
+from test_server import HTTPTestBase, TestHTTPServer
 
 #
 # Module
 #
 
-
-class CacheTestBase(unittest.TestCase):
-    "Base class for Cache tests"
-
-    TEST_URL = 'http://localhost:9999/'
-
-    CACHE_TTL = 0
+class CacheTestBase(HTTPTestBase):
 
     def setUp(self):
-        self.server = self.getServer()
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.setDaemon(True) # so the tests don't hang if cleanup fails
-        self.server_thread.start()
+        HTTPTestBase.setUp(self)
 
         self.storage = self.getStorage()
         self.cache = cache.Cache(self.storage,
@@ -76,22 +65,9 @@ class CacheTestBase(unittest.TestCase):
                                  )
         return
 
-    def getServer(self):
-        "Return a web server for the test."
-        return TestHTTPServer()
-
     def getStorage(self):
         "Return a cache storage for the test."
         return {}
-
-    def tearDown(self):
-        # Stop the server thread
-        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
-        time.sleep(1)
-        self.server.server_close()
-        self.server_thread.join()
-        return
-
 
 class CacheTest(CacheTestBase):
 
