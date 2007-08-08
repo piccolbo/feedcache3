@@ -24,7 +24,7 @@
 #
 from __future__ import with_statement
 
-"""Lock wrapper for shelve.
+"""Lock wrapper for cache storage which do not permit multi-threaded access.
 
 """
 
@@ -44,8 +44,8 @@ import threading
 # Module
 #
 
-class ShelfLock:
-    """Lock wrapper for shelve.
+class CacheStorageLock:
+    """Lock wrapper for cache storage which do not permit multi-threaded access.
     """
 
     def __init__(self, shelf):

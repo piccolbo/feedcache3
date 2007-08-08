@@ -42,7 +42,7 @@ import unittest
 # Import local modules
 #
 from cache import Cache
-from shelflock import ShelfLock
+from cachestoragelock import CacheStorageLock
 from test_server import HTTPTestBase
 
 #
@@ -68,7 +68,7 @@ class CacheShelveTest(HTTPTestBase):
 
     def test(self):
         storage = shelve.open(self.shelve_filename)
-        locking_storage = ShelfLock(storage)
+        locking_storage = CacheStorageLock(storage)
         try:
             fc = Cache(locking_storage)
 
