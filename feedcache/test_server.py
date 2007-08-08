@@ -193,7 +193,7 @@ class HTTPTestBase(unittest.TestCase):
 
     def tearDown(self):
         # Stop the server thread
-        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
+        ignore = urllib.urlretrieve(self.TEST_URL + 'shutdown')
         time.sleep(1)
         self.server.server_close()
         self.server_thread.join()
