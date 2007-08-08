@@ -138,7 +138,7 @@ class SingleWriteMemoryStorage(UserDict.UserDict):
         return
     
 
-class CacheUpdateTest(CacheTestBase):
+class CacheConditionalGETTest(CacheTestBase):
 
     def getStorage(self):
         return SingleWriteMemoryStorage()
@@ -149,7 +149,7 @@ class CacheUpdateTest(CacheTestBase):
         # codes cause us to use the same data.
 
         # First fetch populates the cache
-        response1 = self.cache.fetch('http://localhost:9999/')
+        response1 = self.cache.fetch(self.TEST_URL)
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the modified setting from the cache so we know
@@ -167,7 +167,7 @@ class CacheUpdateTest(CacheTestBase):
         # update the storage, so our SingleWriteMemoryStorage
         # should not raise and we should have the same
         # response object.
-        response2 = self.cache.fetch('http://localhost:9999/')
+        response2 = self.cache.fetch(self.TEST_URL)
         self.failUnless(response1 is response2)
 
         # Should have hit the server twice
@@ -180,7 +180,7 @@ class CacheUpdateTest(CacheTestBase):
         # codes cause us to use the same data.
 
         # First fetch populates the cache
-        response1 = self.cache.fetch('http://localhost:9999/')
+        response1 = self.cache.fetch(self.TEST_URL)
         self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the etag setting from the cache so we know
@@ -198,7 +198,7 @@ class CacheUpdateTest(CacheTestBase):
         # update the storage, so our SingleWriteMemoryStorage
         # should not raise and we should have the same
         # response object.
-        response2 = self.cache.fetch('http://localhost:9999/')
+        response2 = self.cache.fetch(self.TEST_URL)
         self.failUnless(response1 is response2)
 
         # Should have hit the server twice
