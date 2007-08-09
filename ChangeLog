@@ -1,3 +1,8 @@
+2007-08-08  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/example.py (main): Use Cache.fetch() instead of the
+	old Cache.__getitem__().
+
 2007-08-07  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/test_server.py (TestHTTPHandler.do_GET): Clean up the

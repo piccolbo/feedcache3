@@ -50,7 +50,7 @@ def main(urls=[]):
     try:
         fc = cache.Cache(storage)
         for url in urls:
-            parsed_data = fc[url]
+            parsed_data = fc.fetch(url)
             print parsed_data.feed.title
             for entry in parsed_data.entries:
                 print '\t', entry.title
