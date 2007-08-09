@@ -49,35 +49,6 @@ import cache
 MAX_THREADS=5
 OUTPUT_DIR='/tmp/feedcache_example'
 
-def fetch_urls(storage, input_queue, output_queue):
-    """Thread target for fetching feed data.
-    """
-    c = cache.Cache(storage)
-
-    while True:
-        next_url = input_queue.get()
-        if next_url is None: # None causes thread to exit
-            input_queue.task_done()
-            break
-        feed_data = c.fetch(next_url)
-        for entry in feed_data.entries:
-            output_queue.put( (feed_data.feed, entry) )
-        input_queue.task_done()
-    return
-
-
-def print_entries(input_queue):
-    """Thread target for printing the contents of the feeds.
-    """
-    while True:
-        feed, entry = input_queue.get()
-        if feed is None: # None causes thread to exist
-            input_queue.task_done()
-            break
-        print '%s: %s' % (feed.title, entry.title)
-        input_queue.task_done()
-    return
-
 
 def main(urls=[]):
 
@@ -134,6 +105,39 @@ def main(urls=[]):
     finally:
         storage.close()
     return
+
+
+def fetch_urls(storage, input_queue, output_queue):
+    """Thread target for fetching feed data.
+    """
+    c = cache.Cache(storage)
+
+    while True:
+        next_url = input_queue.get()
+        if next_url is None: # None causes thread to exit
+            input_queue.task_done()
+            break
+
+        feed_data = c.fetch(next_url)
+        for entry in feed_data.entries:
+            output_queue.put( (feed_data.feed, entry) )
+        input_queue.task_done()
+    return
+
+
+def print_entries(input_queue):
+    """Thread target for printing the contents of the feeds.
+    """
+    while True:
+        feed, entry = input_queue.get()
+        if feed is None: # None causes thread to exist
+            input_queue.task_done()
+            break
+
+        print '%s: %s' % (feed.title, entry.title)
+        input_queue.task_done()
+    return
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
