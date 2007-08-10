@@ -130,7 +130,7 @@ class Cache:
             # Return the data from the cache, since
             # the parsed data will be empty.
             parsed_result = cached_content
-        else:
+        elif status == 200:
             # There is new content, so store it unless there was an error.
             error = parsed_result.get('bozo_exception')
             if not error:
