@@ -62,7 +62,7 @@ options.
     url = 'http://www.doughellmann.com/projects/%s/' % PROJECT,
     download_url = 'http://www.doughellmann.com/downloads/%s-VERSION.tar.gz' % PROJECT,
 
-    classifiers = [ 'Development Status :: 3 - Alpha',
+    classifiers = [ 'Development Status :: 4 - Beta',
                     'License :: OSI Approved :: BSD License',
                     'Programming Language :: Python',
                     'Intended Audience :: Developers',
