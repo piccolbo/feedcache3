@@ -76,20 +76,45 @@ class Cache:
         self.user_agent = userAgent
         return
 
-    def fetch(self, url):
-        "Return the feed at url."
+    def fetch(self, url, force_update = False, offline = False):
+        """Return the feed at url.
+        
+        url - The URL of the feed.
+
+        force_update=False - When True, update the cache whether the
+                                           current contents have
+                                           exceeded their time-to-live
+                                           or not.
+
+        offline=False - When True, only return data from the local
+                                 cache and never access the remote
+                                 URL.
+        """
         logger.debug('url="%s"' % url)
+
+        # Convert the URL to a value we can use
+        # as a key for the storage backend.
+        key = url
+        if isinstance( key, unicode):
+            key = key.encode('utf-8')
 
         modified = None
         etag = None
         now = time.time()
 
-        cached_time, cached_content = self.storage.get(url, (None, None))
+        cached_time, cached_content = self.storage.get(key, (None, None))
+
+        # Offline mode support (no networked requests)
+        # so return whatever we found in the storage.
+        # If there is nothing in the storage, we'll be returning None.
+        if offline:
+            logger.debug('offline mode')
+            return cached_content
 
         # Does the storage contain a version of the data
         # which is older than the time-to-live?
         logger.debug('cache modified time: %s' % str(cached_time))
-        if cached_time is not None:
+        if cached_time is not None and not force_update:
             if self.time_to_live:
                 age = now - cached_time
                 if age <= self.time_to_live:
@@ -108,7 +133,7 @@ class Cache:
             logger.debug('cached etag=%s' % etag)
             logger.debug('cached modified=%s' % str(modified))
         else:
-            logger.debug('nothing in the cache')
+            logger.debug('nothing in the cache, or forcing update')
 
         # We know we need to fetch, so go ahead and do it.
         logger.debug('fetching...')
@@ -125,7 +150,7 @@ class Cache:
             # We need to update the modified time in the
             # storage, though, so we know that what we have
             # stored is up to date.
-            self.storage[url] = (now, cached_content)
+            self.storage[key] = (now, cached_content)
 
             # Return the data from the cache, since
             # the parsed data will be empty.
@@ -135,7 +160,7 @@ class Cache:
             error = parsed_result.get('bozo_exception')
             if not error:
                 logger.debug('Updating stored data for %s' % url)
-                self.storage[url] = (now, parsed_result)
+                self.storage[key] = (now, parsed_result)
             else:
                 logger.warning('Not storing data with exception: %s' % str(error))
 

@@ -119,6 +119,49 @@ class CacheTest(CacheTestBase):
         self.failIf(feed_data is feed_data2)
         return
 
+    def testForceUpdate(self):
+        # Force cache to retrieve data which is alread in the cache,
+        # and verify that the new data is different.
+
+        # Pre-populate the storage with bad data
+        self.cache.storage[self.TEST_URL] = (time.time() + 100, self.id())
+
+        # Fetch the data
+        feed_data = self.cache.fetch(self.TEST_URL, force_update=True)
+
+        self.failIfEqual(feed_data, self.id())
+        return
+
+    def testOfflineMode(self):
+        # Retrieve data which is alread in the cache,
+        # whether it is expired or not.
+
+        # Pre-populate the storage with data
+        self.cache.storage[self.TEST_URL] = (0, self.id())
+
+        # Fetch it
+        feed_data = self.cache.fetch(self.TEST_URL, offline=True)
+
+        self.failUnlessEqual(feed_data, self.id())
+        return
+
+    def testUnicodeURL(self):
+        # Pass in a URL which is unicode
+
+        url = unicode(self.TEST_URL)
+        feed_data = self.cache.fetch(url)
+
+        storage = self.cache.storage
+        key = unicode(self.TEST_URL).encode('UTF-8')
+
+        # Verify that the storage has a key
+        self.failUnless(storage.has_key(key))
+
+        # Now pull the data from the storage directly
+        storage_timeout, storage_data = self.cache.storage.get(key)
+        self.failUnlessEqual(feed_data, storage_data)
+        return
+
 
 
 class SingleWriteMemoryStorage(UserDict.UserDict):
