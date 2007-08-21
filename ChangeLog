@@ -1,3 +1,8 @@
+2007-08-21  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/cache.py (Cache.fetch): Add force_update and offline
+	flags based on patch from Thomas Perl.
+
 2007-08-08  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/example.py (main): Use Cache.fetch() instead of the
