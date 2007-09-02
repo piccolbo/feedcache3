@@ -1,3 +1,7 @@
+2007-09-02  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* README.txt: Add README.txt and LICENSE.txt.
+
 2007-08-21  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* feedcache/cache.py (Cache.fetch): Add force_update and offline
