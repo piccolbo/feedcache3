@@ -76,6 +76,27 @@ class Cache:
         self.user_agent = userAgent
         return
 
+    def purge(self, olderThanSeconds):
+        """Remove cached data from the storage if the data is older than the
+        date given.  If olderThanSeconds is None, the entire cache is purged.
+        """
+        if olderThanSeconds is None:
+            logger.debug('purging the entire cache')
+            for key in self.storage.keys():
+                del self.storage[key]
+        else:
+            now = time.time()
+            # Iterate over the keys and load each item one at a time
+            # to avoid having the entire cache loaded into memory
+            # at one time.
+            for url in self.storage.keys():
+                (cached_time, cached_data) = self.storage[url]
+                age = now - cached_time
+                if age >= olderThanSeconds:
+                    logger.debug('removing %s with age %d', url, age)
+                    del self.storage[url]
+        return
+
     def fetch(self, url, force_update = False, offline = False):
         """Return the feed at url.
         

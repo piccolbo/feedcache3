@@ -38,6 +38,8 @@ logger = logging.getLogger('feedcache.test_cache')
 #
 # Import system modules
 #
+import copy
+import email.utils
 import os
 import time
 import unittest
@@ -252,6 +254,12 @@ class CacheConditionalGETTest(CacheTestBase):
 class CacheRedirectHandlingTest(CacheTestBase):
     
     def _test(self, response):
+        # Set up the server to redirect requests,
+        # then verify that the cache is not updated
+        # for the original or new URL and that the
+        # redirect status is fed back to us with
+        # the fetched data.
+
         self.server.setResponse(response, '/redirected')
 
         response1 = self.cache.fetch(self.TEST_URL)
@@ -282,6 +290,36 @@ class CacheRedirectHandlingTest(CacheTestBase):
     def test307(self):
         self._test(307)
         return                    
+
+class CachePurgeTest(CacheTestBase):
+
+    def testPurgeAll(self):
+        # Remove everything from the cache
+
+        response1 = self.cache.fetch(self.TEST_URL)
+        self.failUnless(self.storage.keys(), 'Have no data in the cache storage')
+
+        self.cache.purge(None)
+
+        self.failIf(self.storage.keys(), 'Still have data in the cache storage')
+        return
+
+    def testPurgeByAge(self):
+        # Remove old content from the cache
+
+        response1 = self.cache.fetch(self.TEST_URL)
+        self.failUnless(self.storage.keys(), 'Have no data in the cache storage')
+
+        time.sleep(1)
+
+        remains = (time.time(), copy.deepcopy(self.storage[self.TEST_URL][1]))
+        self.storage['http://this.should.remain/'] = remains
+
+        self.cache.purge(1)
+
+        self.failUnlessEqual(self.storage.keys(), ['http://this.should.remain/'])
+        return
+
 
 if __name__ == '__main__':
     unittest.main()

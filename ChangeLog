@@ -1,5 +1,8 @@
 2007-11-25  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/cache.py (Cache.purge): Add a method to clear old
+	content from the cache.
+
 	* feedcache/test_server.py (TestHTTPHandler): Use a separate
 	method for handling each response code so we can have different
 	behaviors based on what the test wants returned.
