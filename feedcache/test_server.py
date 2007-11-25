@@ -93,54 +93,79 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         "Handle GET requests."
+        logger.debug('GET %s', self.path)
 
         if self.path == '/shutdown':
             # Shortcut to handle stopping the server
             logger.debug('Stopping server')
             self.server.stop()
             self.send_response(200)
-            
+
         else:
-            logger.debug('Etag: %s' % self.ETAG)
-            logger.debug('Last-Modified: %s' % self.MODIFIED_TIME)
+            logger.debug('pre-defined response code: %d', self.server.response)
+            handler_method_name = 'do_GET_%d' % self.server.response
+            handler_method = getattr(self, handler_method_name)
+            handler_method()
+        return
 
-            incoming_etag = self.headers.get('If-None-Match', None)
-            logger.debug('Incoming ETag: "%s"' % incoming_etag)
+    def do_GET_3xx(self):
+        "Handle redirects"
+        if self.path.endswith('/redirected'):
+            logger.debug('already redirected')
+            # We have already redirected, so return the data.
+            return self.do_GET_200()
+        new_path = self.server.new_path
+        logger.debug('redirecting to %s', new_path)
+        self.send_response(self.server.response)
+        self.send_header('Location', new_path)
+        return
 
-            incoming_modified = self.headers.get('If-Modified-Since', None)
-            logger.debug('Incoming If-Modified-Since: %s' % incoming_modified)
+    do_GET_301 = do_GET_3xx
+    do_GET_302 = do_GET_3xx
+    do_GET_303 = do_GET_3xx
+    do_GET_307 = do_GET_3xx
 
-            send_data = True
+    def do_GET_200(self):
+        logger.debug('Etag: %s' % self.ETAG)
+        logger.debug('Last-Modified: %s' % self.MODIFIED_TIME)
 
-            # Does the client have the same version of the data we have?
-            if self.server.apply_modified_headers:
-                if incoming_etag == self.ETAG:
-                    logger.debug('Response 304, etag')
-                    self.send_response(304)
-                    send_data = False
+        incoming_etag = self.headers.get('If-None-Match', None)
+        logger.debug('Incoming ETag: "%s"' % incoming_etag)
 
-                elif incoming_modified == self.MODIFIED_TIME:
-                    logger.debug('Response 304, modified time')
-                    self.send_response(304)
-                    send_data = False
+        incoming_modified = self.headers.get('If-Modified-Since', None)
+        logger.debug('Incoming If-Modified-Since: %s' % incoming_modified)
 
-            # Now optionally send the data, if the client needs it
-            if send_data:
-                logger.debug('Response 200')
-                self.send_response(200)
+        send_data = True
 
-                self.send_header('Content-Type', 'application/atom+xml')
+        # Does the client have the same version of the data we have?
+        if self.server.apply_modified_headers:
+            if incoming_etag == self.ETAG:
+                logger.debug('Response 304, etag')
+                self.send_response(304)
+                send_data = False
 
-                logger.debug('Outgoing Etag: %s' % self.ETAG)
-                self.send_header('ETag', self.ETAG)
+            elif incoming_modified == self.MODIFIED_TIME:
+                logger.debug('Response 304, modified time')
+                self.send_response(304)
+                send_data = False
 
-                logger.debug('Outgoing modified time: %s' % self.MODIFIED_TIME)
-                self.send_header('Last-Modified', self.MODIFIED_TIME)
+        # Now optionally send the data, if the client needs it
+        if send_data:
+            logger.debug('Response 200')
+            self.send_response(200)
 
-                self.end_headers()
+            self.send_header('Content-Type', 'application/atom+xml')
 
-                logger.debug('Sending data')
-                self.wfile.write(self.FEED_DATA)
+            logger.debug('Outgoing Etag: %s' % self.ETAG)
+            self.send_header('ETag', self.ETAG)
+
+            logger.debug('Outgoing modified time: %s' % self.MODIFIED_TIME)
+            self.send_header('Last-Modified', self.MODIFIED_TIME)
+
+            self.end_headers()
+
+            logger.debug('Sending data')
+            self.wfile.write(self.FEED_DATA)
         return
 
 class TestHTTPServer(BaseHTTPServer.HTTPServer):
@@ -148,11 +173,16 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
     and can stop based on client instructions.
     """
 
-    def __init__(self, applyModifiedHeaders=True):
+    def __init__(self, applyModifiedHeaders=True, handler=TestHTTPHandler):
         self.apply_modified_headers = applyModifiedHeaders
         self.keep_serving = True
         self.request_count = 0
-        BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), TestHTTPHandler)
+        BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), handler)
+        return
+    
+    def setResponse(self, newResponse, newPath=None):
+        self.response = newResponse
+        self.new_path = newPath
         return
 
     def getNumRequests(self):
@@ -189,7 +219,9 @@ class HTTPTestBase(unittest.TestCase):
 
     def getServer(self):
         "Return a web server for the test."
-        return TestHTTPServer()
+        s = TestHTTPServer()
+        s.setResponse(200)
+        return s
 
     def tearDown(self):
         # Stop the server thread

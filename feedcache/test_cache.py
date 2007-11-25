@@ -249,5 +249,39 @@ class CacheConditionalGETTest(CacheTestBase):
         return
 
 
+class CacheRedirectHandlingTest(CacheTestBase):
+    
+    def _test(self, response):
+        self.server.setResponse(response, '/redirected')
+
+        response1 = self.cache.fetch(self.TEST_URL)
+
+        # The response should include the status code we set
+        self.failUnlessEqual(response1.get('status'), response)
+
+        # The response should include the new URL, too
+        self.failUnlessEqual(response1.href, self.TEST_URL + 'redirected')
+
+        # The response should not have been cached under either URL
+        self.failIf(self.storage.has_key(self.TEST_URL))
+        self.failIf(self.storage.has_key(self.TEST_URL + 'redirected'))
+        return
+
+    def test301(self):
+        self._test(301)
+        return                    
+
+    def test302(self):
+        self._test(302)
+        return                    
+
+    def test303(self):
+        self._test(303)
+        return                    
+
+    def test307(self):
+        self._test(307)
+        return                    
+
 if __name__ == '__main__':
     unittest.main()

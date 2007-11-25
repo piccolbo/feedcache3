@@ -89,6 +89,18 @@ class Cache:
         offline=False - When True, only return data from the local
                                  cache and never access the remote
                                  URL.
+
+        If there is data for that feed in the cache already, check
+        the expiration date before accessing the server.  If the
+        cached data has not expired, return it without accessing the
+        server.
+
+        In cases where the server is accessed, check for updates
+        before deciding what to return.  If the server reports a
+        status of 304, the previously cached content is returned.  
+
+        The cache is only updated if the server returns a status of
+        200, to avoid holding redirected data in the cache.
         """
         logger.debug('url="%s"' % url)
 
