@@ -177,10 +177,14 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
         self.apply_modified_headers = applyModifiedHeaders
         self.keep_serving = True
         self.request_count = 0
+        self.setResponse(200)
         BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), handler)
         return
     
     def setResponse(self, newResponse, newPath=None):
+        """Sets the response code to use for future requests, and a new
+        path to be used as a redirect target, if necessary.
+        """
         self.response = newResponse
         self.new_path = newPath
         return

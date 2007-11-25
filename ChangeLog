@@ -1,5 +1,8 @@
 2007-11-25  Doug Hellmann  <doug.hellmann@gmail.com>
 
+	* feedcache/test_server.py (TestHTTPServer.__init__): Initialize
+	the expected response.
+
 	* feedcache/cache.py (Cache.purge): Add a method to clear old
 	content from the cache.
 
