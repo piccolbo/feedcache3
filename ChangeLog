@@ -1,3 +1,15 @@
+2007-11-25  Doug Hellmann  <doug.hellmann@gmail.com>
+
+	* feedcache/test_server.py (TestHTTPHandler): Use a separate
+	method for handling each response code so we can have different
+	behaviors based on what the test wants returned.
+
+	* feedcache/test_cache.py (CacheRedirectHandlingTest): Add tests
+	for redirect handling.
+
+	* feedcache/cache.py (Cache.fetch): Update docstring to explain
+	how redirected URLs are handled.
+
 2007-09-02  Doug Hellmann  <doug.hellmann@gmail.com>
 
 	* README.txt: Add README.txt and LICENSE.txt.
