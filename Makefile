@@ -2,9 +2,8 @@
 # $Id$
 #
 
-SVNHOME=$(shell svn info | grep "^URL" | cut -f2- -d: | sed 's/^ //')
 PROJECT=FeedCache
-VERSION=$(shell basename $(SVNHOME))
+VERSION=1.3.1
 RELEASE=$(PROJECT)-$(VERSION)
 
 help:

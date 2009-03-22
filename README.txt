@@ -52,6 +52,8 @@ See 'feedcache/example_threads.py' for more details.
 References
 ---------
 
+http://www.doughellmann.com/articles/feedcache/index.html - Article from Python Magazine about using the module to build http://www.castsampler.com/.
+
 http://www.feedparser.org/ - Mark Pilgrim's Universal Feed Parser
 
 http://pypi.python.org/pypi/shove - shove, from L.C. Rees
