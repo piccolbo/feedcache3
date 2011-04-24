@@ -60,7 +60,7 @@ options.
     author_email = 'doug.hellmann@gmail.com',
 
     url = 'http://www.doughellmann.com/projects/%s/' % PROJECT,
-    download_url = 'http://www.doughellmann.com/downloads/%s-VERSION.tar.gz' % PROJECT,
+    #download_url = 'http://www.doughellmann.com/downloads/%s-VERSION.tar.gz' % PROJECT,
 
     classifiers = [ 'Development Status :: 4 - Beta',
                     'License :: OSI Approved :: BSD License',
@@ -73,7 +73,7 @@ options.
                 ],
     package_dir = {'':'.'},
 
-    platforms = ('Any',),
+    platforms = ['Any'],
     keywords = ('syndication', 'atom', 'RSS'),
 
     requires=['feedparser'],

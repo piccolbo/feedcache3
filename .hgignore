@@ -3,3 +3,4 @@ syntax: glob
 docs
 setup.py
 MANIFEST
+dist
