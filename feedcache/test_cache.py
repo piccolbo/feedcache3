@@ -39,8 +39,6 @@ logger = logging.getLogger('feedcache.test_cache')
 # Import system modules
 #
 import copy
-import email.utils
-import os
 import time
 import unittest
 import UserDict
@@ -54,6 +52,7 @@ from test_server import HTTPTestBase, TestHTTPServer
 #
 # Module
 #
+
 
 class CacheTestBase(HTTPTestBase):
 
@@ -70,6 +69,7 @@ class CacheTestBase(HTTPTestBase):
     def getStorage(self):
         "Return a cache storage for the test."
         return {}
+
 
 class CacheTest(CacheTestBase):
 
@@ -157,7 +157,7 @@ class CacheTest(CacheTestBase):
         key = unicode(self.TEST_URL).encode('UTF-8')
 
         # Verify that the storage has a key
-        self.failUnless(storage.has_key(key))
+        self.failUnless(key in storage)
 
         # Now pull the data from the storage directly
         storage_timeout, storage_data = self.cache.storage.get(key)
@@ -165,23 +165,22 @@ class CacheTest(CacheTestBase):
         return
 
 
-
 class SingleWriteMemoryStorage(UserDict.UserDict):
-    """Cache storage which only allows the cache value 
+    """Cache storage which only allows the cache value
     for a URL to be updated one time.
     """
 
     def __setitem__(self, url, data):
         if url in self.keys():
             modified, existing = self[url]
-            # Allow the modified time to change, 
+            # Allow the modified time to change,
             # but not the feed content.
             if data[1] != existing:
                 raise AssertionError('Trying to update cache for %s to %s' \
                                          % (url, data))
         UserDict.UserDict.__setitem__(self, url, data)
         return
-    
+
 
 class CacheConditionalGETTest(CacheTestBase):
 
@@ -252,7 +251,7 @@ class CacheConditionalGETTest(CacheTestBase):
 
 
 class CacheRedirectHandlingTest(CacheTestBase):
-    
+
     def _test(self, response):
         # Set up the server to redirect requests,
         # then verify that the cache is not updated
@@ -271,25 +270,22 @@ class CacheRedirectHandlingTest(CacheTestBase):
         self.failUnlessEqual(response1.href, self.TEST_URL + 'redirected')
 
         # The response should not have been cached under either URL
-        self.failIf(self.storage.has_key(self.TEST_URL))
-        self.failIf(self.storage.has_key(self.TEST_URL + 'redirected'))
+        self.failIf(self.TEST_URL in self.storage)
+        self.failIf(self.TEST_URL + 'redirected' in self.storage)
         return
 
     def test301(self):
         self._test(301)
-        return                    
 
     def test302(self):
         self._test(302)
-        return                    
 
     def test303(self):
         self._test(303)
-        return                    
 
     def test307(self):
         self._test(307)
-        return                    
+
 
 class CachePurgeTest(CacheTestBase):
 
@@ -297,18 +293,21 @@ class CachePurgeTest(CacheTestBase):
         # Remove everything from the cache
 
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(self.storage.keys(), 'Have no data in the cache storage')
+        self.failUnless(self.storage.keys(),
+                        'Have no data in the cache storage')
 
         self.cache.purge(None)
 
-        self.failIf(self.storage.keys(), 'Still have data in the cache storage')
+        self.failIf(self.storage.keys(),
+                    'Still have data in the cache storage')
         return
 
     def testPurgeByAge(self):
         # Remove old content from the cache
 
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(self.storage.keys(), 'Have no data in the cache storage')
+        self.failUnless(self.storage.keys(),
+                        'have no data in the cache storage')
 
         time.sleep(1)
 
@@ -317,7 +316,8 @@ class CachePurgeTest(CacheTestBase):
 
         self.cache.purge(1)
 
-        self.failUnlessEqual(self.storage.keys(), ['http://this.should.remain/'])
+        self.failUnlessEqual(self.storage.keys(),
+                             ['http://this.should.remain/'])
         return
 
 

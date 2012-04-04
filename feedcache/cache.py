@@ -48,6 +48,7 @@ import time
 
 logger = logging.getLogger('feedcache.cache')
 
+
 class Cache:
     """A class to wrap Mark Pilgrim's Universal Feed Parser module
     (http://www.feedparser.org) so that parameters can be used to
@@ -97,9 +98,9 @@ class Cache:
                     del self.storage[url]
         return
 
-    def fetch(self, url, force_update = False, offline = False):
+    def fetch(self, url, force_update=False, offline=False):
         """Return the feed at url.
-        
+
         url - The URL of the feed.
 
         force_update=False - When True, update the cache whether the
@@ -118,7 +119,7 @@ class Cache:
 
         In cases where the server is accessed, check for updates
         before deciding what to return.  If the server reports a
-        status of 304, the previously cached content is returned.  
+        status of 304, the previously cached content is returned.
 
         The cache is only updated if the server returns a status of
         200, to avoid holding redirected data in the cache.
@@ -128,7 +129,7 @@ class Cache:
         # Convert the URL to a value we can use
         # as a key for the storage backend.
         key = url
-        if isinstance( key, unicode):
+        if isinstance(key, unicode):
             key = key.encode('utf-8')
 
         modified = None
@@ -157,7 +158,7 @@ class Cache:
                     logger.debug('cache contents older than TTL')
             else:
                 logger.debug('no TTL value')
-            
+
             # The cache is out of date, but we have
             # something.  Try to use the etag and modified_time
             # values from the cached content.
@@ -195,7 +196,7 @@ class Cache:
                 logger.debug('Updating stored data for %s' % url)
                 self.storage[key] = (now, parsed_result)
             else:
-                logger.warning('Not storing data with exception: %s' % str(error))
+                logger.warning('Not storing data with exception: %s',
+                               str(error))
 
         return parsed_result
-
