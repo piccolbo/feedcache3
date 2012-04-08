@@ -33,7 +33,6 @@ __module_id__ = "$Id$"
 # Import system modules
 #
 import BaseHTTPServer
-import email.utils
 import logging
 import md5
 import threading
@@ -50,6 +49,7 @@ import urllib
 # Module
 #
 logger = logging.getLogger('feedcache.test_server')
+
 
 def make_etag(data):
     """Given a string containing data to be returned to the client,
@@ -89,7 +89,8 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # The data does not change, so save the ETag and modified times
     # as class attributes.
     ETAG = make_etag(FEED_DATA)
-    MODIFIED_TIME = email.utils.formatdate(usegmt=True)
+    # Calculated using email.utils.formatdate(usegmt=True)
+    MODIFIED_TIME = 'Sun, 08 Apr 2012 20:16:48 GMT'
 
     def do_GET(self):
         "Handle GET requests."
@@ -102,6 +103,9 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
 
         else:
+            # Record the request for tests that count them
+            self.server.requests.append(self.path)
+            # Process the request
             logger.debug('pre-defined response code: %d', self.server.response)
             handler_method_name = 'do_GET_%d' % self.server.response
             handler_method = getattr(self, handler_method_name)
@@ -168,6 +172,7 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(self.FEED_DATA)
         return
 
+
 class TestHTTPServer(BaseHTTPServer.HTTPServer):
     """HTTP Server which counts the number of requests made
     and can stop based on client instructions.
@@ -176,11 +181,11 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
     def __init__(self, applyModifiedHeaders=True, handler=TestHTTPHandler):
         self.apply_modified_headers = applyModifiedHeaders
         self.keep_serving = True
-        self.request_count = 0
+        self.requests = []
         self.setResponse(200)
         BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), handler)
         return
-    
+
     def setResponse(self, newResponse, newPath=None):
         """Sets the response code to use for future requests, and a new
         path to be used as a redirect target, if necessary.
@@ -191,7 +196,7 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
 
     def getNumRequests(self):
         "Return the number of requests which have been made on the server."
-        return self.request_count
+        return len(self.requests)
 
     def stop(self):
         "Stop serving requests, after the next request."
@@ -202,7 +207,6 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
         "Main loop for server"
         while self.keep_serving:
             self.handle_request()
-            self.request_count += 1
         logger.debug('exiting')
         return
 
@@ -217,7 +221,8 @@ class HTTPTestBase(unittest.TestCase):
     def setUp(self):
         self.server = self.getServer()
         self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.setDaemon(True) # so the tests don't hang if cleanup fails
+        # set daemon flag so the tests don't hang if cleanup fails
+        self.server_thread.setDaemon(True)
         self.server_thread.start()
         return
 
@@ -229,7 +234,7 @@ class HTTPTestBase(unittest.TestCase):
 
     def tearDown(self):
         # Stop the server thread
-        ignore = urllib.urlretrieve(self.TEST_URL + 'shutdown')
+        urllib.urlretrieve(self.TEST_URL + 'shutdown')
         time.sleep(1)
         self.server.server_close()
         self.server_thread.join()

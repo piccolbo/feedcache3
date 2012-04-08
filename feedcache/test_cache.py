@@ -56,6 +56,8 @@ from test_server import HTTPTestBase, TestHTTPServer
 
 class CacheTestBase(HTTPTestBase):
 
+    CACHE_TTL = 30
+
     def setUp(self):
         HTTPTestBase.setUp(self)
 
@@ -184,6 +186,8 @@ class SingleWriteMemoryStorage(UserDict.UserDict):
 
 class CacheConditionalGETTest(CacheTestBase):
 
+    CACHE_TTL = 0
+
     def getStorage(self):
         return SingleWriteMemoryStorage()
 
@@ -202,9 +206,6 @@ class CacheConditionalGETTest(CacheTestBase):
         # cache, modifying response1 updates the cache storage
         # directly.
         response1['modified'] = None
-
-        # Wait so the cache data times out
-        time.sleep(1)
 
         # This should result in a 304 status, and no data from
         # the server.  That means the cache won't try to
@@ -233,9 +234,6 @@ class CacheConditionalGETTest(CacheTestBase):
         # cache, modifying response1 updates the cache storage
         # directly.
         response1['etag'] = None
-
-        # Wait so the cache data times out
-        time.sleep(1)
 
         # This should result in a 304 status, and no data from
         # the server.  That means the cache won't try to
@@ -292,7 +290,7 @@ class CachePurgeTest(CacheTestBase):
     def testPurgeAll(self):
         # Remove everything from the cache
 
-        response1 = self.cache.fetch(self.TEST_URL)
+        self.cache.fetch(self.TEST_URL)
         self.failUnless(self.storage.keys(),
                         'Have no data in the cache storage')
 
@@ -305,7 +303,7 @@ class CachePurgeTest(CacheTestBase):
     def testPurgeByAge(self):
         # Remove old content from the cache
 
-        response1 = self.cache.fetch(self.TEST_URL)
+        self.cache.fetch(self.TEST_URL)
         self.failUnless(self.storage.keys(),
                         'have no data in the cache storage')
 
