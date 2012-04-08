@@ -178,7 +178,7 @@ class Cache:
                                          )
 
         status = parsed_result.get('status', None)
-        logger.debug('status=%s' % status)
+        logger.debug('HTTP status=%s' % status)
         if status == 304:
             # No new data, based on the etag or modified values.
             # We need to update the modified time in the
@@ -197,6 +197,8 @@ class Cache:
                 self.storage[key] = (now, parsed_result)
             else:
                 logger.warning('Not storing data with exception: %s',
-                               str(error))
+                               error)
+        else:
+            logger.warning('Not updating cache with HTTP status %s', status)
 
         return parsed_result
