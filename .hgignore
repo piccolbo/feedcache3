@@ -5,4 +5,4 @@ setup.py
 MANIFEST
 dist
 .tox
-
+TAGS
