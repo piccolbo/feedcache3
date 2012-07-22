@@ -2,6 +2,11 @@
  History
 =========
 
+1.4.1
+
+  - Moved the documentation to readthedocs.org.
+  - Updated packaging to use distribute instead of distutils.
+
 1.3.1
 
   - Updated build to work with hg and migrated code to bitbucket
