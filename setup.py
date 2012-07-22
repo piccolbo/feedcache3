@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 #
-# $Id: setup.py.in 527 2007-01-14 17:14:50Z dhellmann $
-#
 # Copyright 2006 Doug Hellmann.
 #
 #
@@ -28,27 +26,21 @@
 
 """
 
-#
-# Import system modules
-#
-from distutils.core import setup
+# Bootstrap installation of Distribute
+import distribute_setup
+distribute_setup.use_setuptools()
 
-#
-# Import Local modules
-#
-
-#
-# Module
-#
+from setuptools import setup
 
 PROJECT = 'feedcache'
+VERSION = '1.4.1'
 
-setup (
-    name = PROJECT,
-    version = 'VERSION',
+setup(
+    name=PROJECT,
+    version=VERSION,
 
-    description = "Wrapper for Mark Pilgrim's FeedParser module which caches feed content.",
-    long_description = """
+    description="Wrapper for Mark Pilgrim's FeedParser module which caches feed content.",
+    long_description="""
 A class to wrap Mark Pilgrim's FeedParser module so that parameters
 can be used to cache the feed results locally instead of fetching the
 feed every time it is requested. Uses both etag and modified times for
@@ -56,25 +48,24 @@ caching.  The cache is parameterized to use different backend storage
 options.
 """,
 
-    author = 'Doug Hellmann',
-    author_email = 'doug.hellmann@gmail.com',
+    author='Doug Hellmann',
+    author_email='doug.hellmann@gmail.com',
 
-    url = 'http://www.doughellmann.com/projects/%s/' % PROJECT,
-    #download_url = 'http://www.doughellmann.com/downloads/%s-VERSION.tar.gz' % PROJECT,
+    url='http://feedcache.readthedocs.org',
 
-    classifiers = [ 'Development Status :: 4 - Beta',
-                    'License :: OSI Approved :: BSD License',
-                    'Programming Language :: Python',
-                    'Intended Audience :: Developers',
-                    'Topic :: Internet :: WWW/HTTP',
-                    ],
+    classifiers=['Development Status :: 4 - Beta',
+                 'License :: OSI Approved :: BSD License',
+                 'Programming Language :: Python',
+                 'Intended Audience :: Developers',
+                 'Topic :: Internet :: WWW/HTTP',
+                 ],
 
-    packages = ['feedcache',
-                ],
-    package_dir = {'':'.'},
+    packages=['feedcache',
+              ],
+    package_dir={'': '.'},
 
-    platforms = ['Any'],
-    keywords = ('syndication', 'atom', 'RSS'),
+    platforms=['Any'],
+    keywords=('syndication', 'atom', 'RSS'),
 
     requires=['feedparser'],
     )
