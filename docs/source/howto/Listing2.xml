@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
+  <title>Sample Atom Feed</title>
+  <link href="http://www.example.com/" rel="alternate"></link>
+  <link href="http://www.example.com/atom.xml" rel="self"></link>
+  <id>http://www.example.com/atom.xml</id>
+  <updated>2007-08-04T15:00:36Z</updated>
+  <entry>
+    <title>title goes here</title>
+    <link href="http://www.example.com/items/1/" rel="alternate"></link>
+    <updated>2007-08-04T15:00:36Z</updated>
+    <author>
+      <name>author goes here</name>
+      <email>authoremail@example.com</email>
+    </author>
+    <id>http://www.example.com/items/1/</id>
+    <summary type="html">description goes here</summary>
+    <link length="100" href="http://www.example.com/items/1/enclosure" type="audio/mpeg" rel="enclosure">
+    </link>
+  </entry>
+</feed>

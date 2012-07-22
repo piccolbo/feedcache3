@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<rss version="2.0">
+  <channel>
+    <title>Sample RSS 2.0 Feed</title>
+    <link>http://www.example.com/rss.xml</link>
+    <description>Sample feed using RSS 2.0 format.</description>
+    <language>en-us</language>
+    <item>
+      <title>item title goes here</title>
+      <link>http://www.example.com/items/1/</link>
+      <description>description goes here</description>
+      <author>authoremail@example.com (author goes here)</author>
+      <pubDate>Sat, 4 Aug 2007 15:00:36 -0000</pubDate>
+      <guid>http://www.example.com/items/1/</guid>
+      <enclosure url="http://www.example.com/items/1/enclosure" length="100" type="audio/mpeg">
+      </enclosure>
+    </item>
+  </channel>
+</rss>
