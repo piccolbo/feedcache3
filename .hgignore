@@ -1,8 +1,8 @@
 syntax: glob
 *.pyc
-docs
-setup.py
 MANIFEST
 dist
 .tox
 TAGS
+build
+*.egg-info
