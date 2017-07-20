@@ -83,14 +83,14 @@ class Cache:
         """
         if olderThanSeconds is None:
             logger.debug('purging the entire cache')
-            for key in self.storage.keys():
+            for key in list(self.storage.keys()):
                 del self.storage[key]
         else:
             now = time.time()
             # Iterate over the keys and load each item one at a time
             # to avoid having the entire cache loaded into memory
             # at one time.
-            for url in self.storage.keys():
+            for url in list(self.storage.keys()):
                 (cached_time, cached_data) = self.storage[url]
                 age = now - cached_time
                 if age >= olderThanSeconds:
@@ -129,8 +129,8 @@ class Cache:
         # Convert the URL to a value we can use
         # as a key for the storage backend.
         key = url
-        if isinstance(key, unicode):
-            key = key.encode('utf-8')
+        # if isinstance(key, str):
+        #     key = key.encode('utf-8')
 
         modified = None
         etag = None

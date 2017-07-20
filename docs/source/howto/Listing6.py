@@ -2,14 +2,14 @@
 """Simple HTTP server for testing the feed cache.
 """
 
-import BaseHTTPServer
+import http.server
 import email.utils
 import logging
 import md5
 import threading
 import time
 import unittest
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 
 def make_etag(data):
@@ -21,7 +21,7 @@ def make_etag(data):
     return _md5.hexdigest()
 
 
-class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class TestHTTPHandler(http.server.BaseHTTPRequestHandler):
     "HTTP request handler which serves the same feed data every time."
 
     FEED_DATA = """<?xml version="1.0" encoding="utf-8"?>
@@ -88,7 +88,7 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
 
-class TestHTTPServer(BaseHTTPServer.HTTPServer):
+class TestHTTPServer(http.server.HTTPServer):
     """HTTP Server which counts the number of requests made
     and can stop based on client instructions.
     """
@@ -97,7 +97,7 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
         self.apply_modified_headers = applyModifiedHeaders
         self.keep_serving = True
         self.request_count = 0
-        BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), TestHTTPHandler)
+        http.server.HTTPServer.__init__(self, ('', 9999), TestHTTPHandler)
         return
 
     def getNumRequests(self):
@@ -137,7 +137,7 @@ class HTTPTestBase(unittest.TestCase):
 
     def tearDown(self):
         # Stop the server thread
-        ignore = urllib.urlretrieve('http://localhost:9999/shutdown')
+        ignore = urllib.request.urlretrieve('http://localhost:9999/shutdown')
         time.sleep(1)
         self.server.server_close()
         self.server_thread.join()
@@ -149,7 +149,7 @@ class HTTPTest(HTTPTestBase):
     def testResponse(self):
         # Verify that the server thread responds
         # without error.
-        filename, response = urllib.urlretrieve(self.TEST_URL)
+        filename, response = urllib.request.urlretrieve(self.TEST_URL)
         return
 
 if __name__ == '__main__':

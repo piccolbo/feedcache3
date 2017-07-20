@@ -41,9 +41,9 @@ import unittest
 #
 # Import local modules
 #
-from cache import Cache
-from cachestoragelock import CacheStorageLock
-from test_server import HTTPTestBase
+from .cache import Cache
+from .cachestoragelock import CacheStorageLock
+from .test_server import HTTPTestBase
 
 #
 # Module
@@ -74,13 +74,13 @@ class CacheShelveTest(HTTPTestBase):
 
             # First fetch the data through the cache
             parsed_data = fc.fetch(self.TEST_URL)
-            self.failUnlessEqual(parsed_data.feed.title, 'CacheTest test data')
+            self.assertEqual(parsed_data.feed.title, 'CacheTest test data')
 
             # Now retrieve the same data directly from the shelf
             modified, shelved_data = storage[self.TEST_URL]
             
             # The data should be the same
-            self.failUnlessEqual(parsed_data, shelved_data)
+            self.assertEqual(parsed_data, shelved_data)
         finally:
             storage.close()
         return

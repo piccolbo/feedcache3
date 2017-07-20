@@ -71,7 +71,7 @@ class SingleWriteMemoryStorage(UserDict.UserDict):
     """
 
     def __setitem__(self, url, data):
-        if url in self.keys():
+        if url in list(self.keys()):
             modified, existing = self[url]
             # Allow the modified time to change, 
             # but not the feed content.
@@ -98,7 +98,7 @@ class CacheConditionalGETTest(Listing6.HTTPTestBase):
 
         # First fetch populates the cache
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
+        self.assertEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the modified setting from the cache so we know
         # the next time we check the etag will be used
@@ -116,10 +116,10 @@ class CacheConditionalGETTest(Listing6.HTTPTestBase):
         # should not raise and we should have the same
         # response object.
         response2 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(response1 is response2)
+        self.assertTrue(response1 is response2)
 
         # Should have hit the server twice
-        self.failUnlessEqual(self.server.getNumRequests(), 2)
+        self.assertEqual(self.server.getNumRequests(), 2)
         return
 
     def testFetchOnceForModifiedTime(self):
@@ -129,7 +129,7 @@ class CacheConditionalGETTest(Listing6.HTTPTestBase):
 
         # First fetch populates the cache
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
+        self.assertEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the etag setting from the cache so we know
         # the next time we check the modified time will be used
@@ -147,10 +147,10 @@ class CacheConditionalGETTest(Listing6.HTTPTestBase):
         # should not raise and we should have the same
         # response object.
         response2 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(response1 is response2)
+        self.assertTrue(response1 is response2)
 
         # Should have hit the server twice
-        self.failUnlessEqual(self.server.getNumRequests(), 2)
+        self.assertEqual(self.server.getNumRequests(), 2)
         return
     
 if __name__ == '__main__':

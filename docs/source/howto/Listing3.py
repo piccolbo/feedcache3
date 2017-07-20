@@ -8,4 +8,4 @@ import sys
 for url in sys.argv[1:]:
     data = feedparser.parse(url)
     for entry in data.entries:
-        print '%s: %s' % (data.feed.title, entry.title)
+        print('%s: %s' % (data.feed.title, entry.title))

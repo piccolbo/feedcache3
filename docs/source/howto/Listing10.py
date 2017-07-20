@@ -32,7 +32,7 @@ class CacheShoveTest(HTTPTestBase):
         try:
             fc = Cache(storage)
             parsed_data = fc.fetch(self.TEST_URL)
-            self.failUnlessEqual(parsed_data.feed.title, 'CacheTest test data')
+            self.assertEqual(parsed_data.feed.title, 'CacheTest test data')
         finally:
             storage.close()
 
@@ -44,7 +44,7 @@ class CacheShoveTest(HTTPTestBase):
             storage.close()
             
         # The data should be the same
-        self.failUnlessEqual(parsed_data, shelved_data)
+        self.assertEqual(parsed_data, shelved_data)
         return
 
 

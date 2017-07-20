@@ -32,13 +32,13 @@ __module_id__ = "$Id$"
 #
 # Import system modules
 #
-import BaseHTTPServer
+import http.server
 import logging
-import md5
+from hashlib import md5
 import threading
 import time
 import unittest
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 #
 # Import local modules
@@ -55,12 +55,12 @@ def make_etag(data):
     """Given a string containing data to be returned to the client,
     compute an ETag value for the data.
     """
-    _md5 = md5.new()
-    _md5.update(data)
+    _md5 = md5()
+    _md5.update(data.encode("utf-8"))
     return _md5.hexdigest()
 
 
-class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class TestHTTPHandler(http.server.BaseHTTPRequestHandler):
     "HTTP request handler which serves the same feed data every time."
 
     FEED_DATA = """<?xml version="1.0" encoding="utf-8"?>
@@ -169,11 +169,11 @@ class TestHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
 
             logger.debug('Sending data')
-            self.wfile.write(self.FEED_DATA)
+            self.wfile.write(self.FEED_DATA.encode('utf-8'))
         return
 
 
-class TestHTTPServer(BaseHTTPServer.HTTPServer):
+class TestHTTPServer(http.server.HTTPServer):
     """HTTP Server which counts the number of requests made
     and can stop based on client instructions.
     """
@@ -183,7 +183,7 @@ class TestHTTPServer(BaseHTTPServer.HTTPServer):
         self.keep_serving = True
         self.requests = []
         self.setResponse(200)
-        BaseHTTPServer.HTTPServer.__init__(self, ('', 9999), handler)
+        http.server.HTTPServer.__init__(self, ('', 9999), handler)
         return
 
     def setResponse(self, newResponse, newPath=None):
@@ -234,7 +234,7 @@ class HTTPTestBase(unittest.TestCase):
 
     def tearDown(self):
         # Stop the server thread
-        urllib.urlretrieve(self.TEST_URL + 'shutdown')
+        urllib.request.urlretrieve(self.TEST_URL + 'shutdown')
         time.sleep(1)
         self.server.server_close()
         self.server_thread.join()

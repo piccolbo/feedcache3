@@ -2,7 +2,7 @@
 """Example use of feedcache.Cache combined with threads.
 """
 
-import Queue
+import queue
 import sys
 import shove
 import threading
@@ -16,11 +16,11 @@ OUTPUT_DIR='/tmp/feedcache_example'
 def main(urls=[]):
 
     if not urls:
-        print 'Specify the URLs to a few RSS or Atom feeds on the command line.'
+        print('Specify the URLs to a few RSS or Atom feeds on the command line.')
         return
 
     # Add the URLs to a queue
-    url_queue = Queue.Queue()
+    url_queue = queue.Queue()
     for url in urls:
         url_queue.put(url)
 
@@ -30,9 +30,9 @@ def main(urls=[]):
         url_queue.put(None)
 
     # Track the entries in the feeds being fetched
-    entry_queue = Queue.Queue()
+    entry_queue = queue.Queue()
 
-    print 'Saving feed data to', OUTPUT_DIR
+    print('Saving feed data to', OUTPUT_DIR)
     storage = shove.Shove('file://' + OUTPUT_DIR)
     try:
 
@@ -94,7 +94,7 @@ def print_entries(input_queue):
             input_queue.task_done()
             break
 
-        print '%s: %s' % (feed.title, entry.title)
+        print('%s: %s' % (feed.title, entry.title))
         input_queue.task_done()
     return
 

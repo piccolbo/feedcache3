@@ -32,14 +32,14 @@ class CacheTest(unittest.TestCase):
     def testFetch(self):
         c = Cache({})
         parsed_feed = c.fetch('http://feeds.feedburner.com/FeedcacheReleases')
-        self.failUnless(parsed_feed.entries)
+        self.assertTrue(parsed_feed.entries)
         return
 
     def testReuseContentsWithinTimeToLiveWindow(self):
         url = 'http://feeds.feedburner.com/FeedcacheReleases'
         c = Cache({ url:(time.time(), 'prepopulated cache')})
         cache_contents = c.fetch(url)
-        self.failUnlessEqual(cache_contents, 'prepopulated cache')
+        self.assertEqual(cache_contents, 'prepopulated cache')
         return
 
 if __name__ == '__main__':

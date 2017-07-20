@@ -18,7 +18,7 @@ class CacheTest(unittest.TestCase):
     def testFetch(self):
         c = Cache({})
         parsed_feed = c.fetch('http://feeds.feedburner.com/FeedcacheReleases')
-        self.failUnless(parsed_feed.entries)
+        self.assertTrue(parsed_feed.entries)
         return
 
 if __name__ == '__main__':

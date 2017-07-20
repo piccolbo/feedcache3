@@ -41,13 +41,13 @@ logger = logging.getLogger('feedcache.test_cache')
 import copy
 import time
 import unittest
-import UserDict
+from collections import UserDict
 
 #
 # Import local modules
 #
-import cache
-from test_server import HTTPTestBase, TestHTTPServer
+from . import cache
+from .test_server import HTTPTestBase, TestHTTPServer
 
 #
 # Module
@@ -84,8 +84,8 @@ class CacheTest(CacheTestBase):
     def testRetrieveNotInCache(self):
         # Retrieve data not already in the cache.
         feed_data = self.cache.fetch(self.TEST_URL)
-        self.failUnless(feed_data)
-        self.failUnlessEqual(feed_data.feed.title, 'CacheTest test data')
+        self.assertTrue(feed_data)
+        self.assertEqual(feed_data.feed.title, 'CacheTest test data')
         return
 
     def testRetrieveIsInCache(self):
@@ -101,7 +101,7 @@ class CacheTest(CacheTestBase):
 
         # Since it is the in-memory storage, we should have the
         # exact same object.
-        self.failUnless(feed_data is feed_data2)
+        self.assertTrue(feed_data is feed_data2)
         return
 
     def testExpireDataInCache(self):
@@ -120,7 +120,7 @@ class CacheTest(CacheTestBase):
         feed_data2 = self.cache.fetch(self.TEST_URL)
 
         # Since we reparsed, the cache response should be different.
-        self.failIf(feed_data is feed_data2)
+        self.assertFalse(feed_data is feed_data2)
         return
 
     def testForceUpdate(self):
@@ -133,7 +133,7 @@ class CacheTest(CacheTestBase):
         # Fetch the data
         feed_data = self.cache.fetch(self.TEST_URL, force_update=True)
 
-        self.failIfEqual(feed_data, self.id())
+        self.assertNotEqual(feed_data, self.id())
         return
 
     def testOfflineMode(self):
@@ -146,41 +146,41 @@ class CacheTest(CacheTestBase):
         # Fetch it
         feed_data = self.cache.fetch(self.TEST_URL, offline=True)
 
-        self.failUnlessEqual(feed_data, self.id())
+        self.assertEqual(feed_data, self.id())
         return
 
     def testUnicodeURL(self):
         # Pass in a URL which is unicode
 
-        url = unicode(self.TEST_URL)
+        url = str(self.TEST_URL)
         feed_data = self.cache.fetch(url)
 
         storage = self.cache.storage
-        key = unicode(self.TEST_URL).encode('UTF-8')
+        key = str(self.TEST_URL).encode('UTF-8')
 
         # Verify that the storage has a key
-        self.failUnless(key in storage)
+        self.assertTrue(key in storage)
 
         # Now pull the data from the storage directly
         storage_timeout, storage_data = self.cache.storage.get(key)
-        self.failUnlessEqual(feed_data, storage_data)
+        self.assertEqual(feed_data, storage_data)
         return
 
 
-class SingleWriteMemoryStorage(UserDict.UserDict):
+class SingleWriteMemoryStorage(UserDict):
     """Cache storage which only allows the cache value
     for a URL to be updated one time.
     """
 
     def __setitem__(self, url, data):
-        if url in self.keys():
+        if url in list(self.keys()):
             modified, existing = self[url]
             # Allow the modified time to change,
             # but not the feed content.
             if data[1] != existing:
                 raise AssertionError('Trying to update cache for %s to %s' \
                                          % (url, data))
-        UserDict.UserDict.__setitem__(self, url, data)
+        UserDict.__setitem__(self, url, data)
         return
 
 
@@ -198,7 +198,7 @@ class CacheConditionalGETTest(CacheTestBase):
 
         # First fetch populates the cache
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
+        self.assertEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the modified setting from the cache so we know
         # the next time we check the etag will be used
@@ -213,10 +213,10 @@ class CacheConditionalGETTest(CacheTestBase):
         # should not raise and we should have the same
         # response object.
         response2 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(response1 is response2)
+        self.assertTrue(response1 is response2)
 
         # Should have hit the server twice
-        self.failUnlessEqual(self.server.getNumRequests(), 2)
+        self.assertEqual(self.server.getNumRequests(), 2)
         return
 
     def testFetchOnceForModifiedTime(self):
@@ -226,7 +226,7 @@ class CacheConditionalGETTest(CacheTestBase):
 
         # First fetch populates the cache
         response1 = self.cache.fetch(self.TEST_URL)
-        self.failUnlessEqual(response1.feed.title, 'CacheTest test data')
+        self.assertEqual(response1.feed.title, 'CacheTest test data')
 
         # Remove the etag setting from the cache so we know
         # the next time we check the modified time will be used
@@ -241,10 +241,10 @@ class CacheConditionalGETTest(CacheTestBase):
         # should not raise and we should have the same
         # response object.
         response2 = self.cache.fetch(self.TEST_URL)
-        self.failUnless(response1 is response2)
+        self.assertTrue(response1 is response2)
 
         # Should have hit the server twice
-        self.failUnlessEqual(self.server.getNumRequests(), 2)
+        self.assertEqual(self.server.getNumRequests(), 2)
         return
 
 
@@ -262,14 +262,14 @@ class CacheRedirectHandlingTest(CacheTestBase):
         response1 = self.cache.fetch(self.TEST_URL)
 
         # The response should include the status code we set
-        self.failUnlessEqual(response1.get('status'), response)
+        self.assertEqual(response1.get('status'), response)
 
         # The response should include the new URL, too
-        self.failUnlessEqual(response1.href, self.TEST_URL + 'redirected')
+        self.assertEqual(response1.href, self.TEST_URL + 'redirected')
 
         # The response should not have been cached under either URL
-        self.failIf(self.TEST_URL in self.storage)
-        self.failIf(self.TEST_URL + 'redirected' in self.storage)
+        self.assertFalse(self.TEST_URL in self.storage)
+        self.assertFalse(self.TEST_URL + 'redirected' in self.storage)
         return
 
     def test301(self):
@@ -291,12 +291,12 @@ class CachePurgeTest(CacheTestBase):
         # Remove everything from the cache
 
         self.cache.fetch(self.TEST_URL)
-        self.failUnless(self.storage.keys(),
+        self.assertTrue(list(self.storage.keys()),
                         'Have no data in the cache storage')
 
         self.cache.purge(None)
 
-        self.failIf(self.storage.keys(),
+        self.assertFalse(list(self.storage.keys()),
                     'Still have data in the cache storage')
         return
 
@@ -304,7 +304,7 @@ class CachePurgeTest(CacheTestBase):
         # Remove old content from the cache
 
         self.cache.fetch(self.TEST_URL)
-        self.failUnless(self.storage.keys(),
+        self.assertTrue(list(self.storage.keys()),
                         'have no data in the cache storage')
 
         time.sleep(1)
@@ -314,7 +314,7 @@ class CachePurgeTest(CacheTestBase):
 
         self.cache.purge(1)
 
-        self.failUnlessEqual(self.storage.keys(),
+        self.assertEqual(list(self.storage.keys()),
                              ['http://this.should.remain/'])
         return
 

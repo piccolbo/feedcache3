@@ -37,7 +37,7 @@ __module_id__ = "$Id$"
 #
 # Import local modules
 #
-from cache import Cache
+from .cache import Cache
 
 #
 # Module

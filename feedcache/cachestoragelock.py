@@ -22,7 +22,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
-from __future__ import with_statement
+
 
 """Lock wrapper for cache storage which do not permit multi-threaded access.
 
