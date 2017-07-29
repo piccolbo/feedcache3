@@ -2,3 +2,6 @@
 *.bak
 
 *.pyc
+build/*
+dist/*
+feedcache.egg-info/*
