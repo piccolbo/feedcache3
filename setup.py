@@ -26,14 +26,11 @@
 
 """
 
-# Bootstrap installation of Distribute
-import distribute_setup
-distribute_setup.use_setuptools()
 
 from setuptools import setup
 
 PROJECT = 'feedcache'
-VERSION = '1.4.1'
+VERSION = '1.4.2'
 
 setup(
     name=PROJECT,
